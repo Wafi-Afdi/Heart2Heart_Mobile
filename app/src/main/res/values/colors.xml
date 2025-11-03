@@ -8,30 +8,31 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="primary_light">#AC0C0C</color>
-    <color name="primary_dark">#F35353</color>
+    <color name="primary_light">#FFAC0C0C</color>
+    <color name="primary_dark">#FFF35353</color>
 
-    <color name="secondary_dark">#F87777</color>
-    <color name="secondary_light">#880707</color>
+    <color name="secondary_dark">#FFF87777</color>
+    <color name="secondary_light">#FF880707</color>
 
-    <color name="accent_light">#5F5454</color>
-    <color name="accent_dark">#ABA0A0</color>
+    <color name="accent_light">#FF5F5454</color>
+    <color name="accent_dark">#FFABA0A0</color>
 
-    <color name="bg_light">#FBFBFE</color>
-    <color name="bg_dark">#010104</color>
+    <color name="bg_light">#FFFBFBFE</color>
+    <color name="bg_dark">#FF010104</color>
 
-    <color name="text_light">#040316</color>
-    <color name="text_dark">#EAE9FC</color>
+    <color name="text_light">#FF040316</color>
+    <color name="text_dark">#FFEAE9FC</color>
 
-    <color name="warning">#B5780E</color>
-    <color name="success">#20992C</color>
-    <color name="info">#086EA1</color>
-    <color name="danger">#D11E11</color>
+    <color name="warning">#FFB5780E</color>
+    <color name="success">#FF20992C</color>
+    <color name="info">#FF086EA1</color>
+    <color name="danger">#FFD11E11</color>
 
-    <color name="neutral_100">#e0e0e0</color>
-    <color name="neutral_300">#b0b3b8</color>
-    <color name="neutral_500">#a7a8aa</color>
-    <color name="neutral_700">#7d7f81</color>
-    <color name="neutral_900">#4b4e52</color>
+    <color name="neutral_100">#FFe0e0e0</color>
+    <color name="neutral_300">#FFb0b3b8</color>
+    <color name="neutral_500">#FFa7a8aa</color>
+    <color name="neutral_700">#FF7d7f81</color>
+    <color name="neutral_900">#FF4b4e52</color>
+    <color name="neutral_1000">#FF1B1717</color>
 
 </resources>

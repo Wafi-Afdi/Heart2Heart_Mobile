@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -79,7 +80,7 @@ private fun RowScope.BottomBarItem(
 
             .background(
                 if (!NotFAB) {
-                    colorResource(R.color.primary_light)
+                    MaterialTheme.colorScheme.primary
                 }else {
                     Color.Transparent
                 }
@@ -94,15 +95,14 @@ private fun RowScope.BottomBarItem(
                         id = screen.selectedIcon
                     ),
                     contentDescription = null,
-                    tint = colorResource(
-                        if(isActive && NotFAB) {
-                            R.color.primary_light
-                        } else if (!NotFAB) {
-                            R.color.text_dark
-                        } else {
-                            R.color.black
-                        }
-                    ),
+                    tint = if(isActive && NotFAB) {
+                        MaterialTheme.colorScheme.primary
+                    } else if (!NotFAB) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
+                    ,
                     modifier = Modifier.size(32 .dp),
                 )
             },
@@ -140,7 +140,7 @@ fun BottomNavigationScreen(
                 .height(56.dp)
                 .align(Alignment.BottomCenter)
 
-                .background(Color.LightGray, backgroundShape)
+                .background(MaterialTheme.colorScheme.surface, backgroundShape)
         )
 
         Column(

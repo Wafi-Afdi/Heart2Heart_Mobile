@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,7 +39,7 @@ fun ReportCard(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(colorResource(R.color.neutral_700))
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         Row(
@@ -56,7 +57,7 @@ fun ReportCard(modifier: Modifier = Modifier) {
                     ),
                     fontFamily = ubuntuFamily,
                     fontWeight = FontWeight.Bold,
-                    color = colorResource(R.color.text_light),
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 14.sp,
                 )
                 Spacer(Modifier.width(4.dp))
@@ -74,7 +75,7 @@ fun ReportCard(modifier: Modifier = Modifier) {
                     lineHeight = 16.sp
                 ),
                 fontFamily = ubuntuFamily,
-                color = colorResource(R.color.text_light),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp,
             )
         }
@@ -89,7 +90,7 @@ fun ReportCard(modifier: Modifier = Modifier) {
                 lineHeight = 16.sp
             ),
             fontFamily = poppinsFamily,
-            color = colorResource(R.color.text_light),
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 14.sp,
         )
 
@@ -107,14 +108,14 @@ fun ReportCard(modifier: Modifier = Modifier) {
                 ),
                 fontFamily = poppinsFamily,
                 fontWeight = FontWeight.Bold,
-                color = colorResource(R.color.text_light),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp,
             )
             Spacer(Modifier.width(4.dp))
             Icon(
                 imageVector = TriangleRight,
                 contentDescription = "More",
-                tint = colorResource(R.color.black),
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(16 .dp)
             )
         }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -55,7 +56,7 @@ fun LocationView(modifier: Modifier = Modifier, lat: Double = 0.0, long: Double 
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(colorResource(R.color.primary_light))
+            .background(MaterialTheme.colorScheme.surface)
             .padding(12.dp)
             .width(10.dp)
             .height(100.dp)
@@ -66,7 +67,7 @@ fun LocationView(modifier: Modifier = Modifier, lat: Double = 0.0, long: Double 
         Icon(
             imageVector = Location_on,
             contentDescription = "Location Icon",
-            tint = colorResource(R.color.white),
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(36.dp)
         )
         Spacer(modifier = Modifier.width(2.dp))
@@ -78,7 +79,7 @@ fun LocationView(modifier: Modifier = Modifier, lat: Double = 0.0, long: Double 
                     lineHeight = 16.sp // adjust as needed, try 16–20.sp
                 ),
                 fontFamily = ubuntuFamily,
-                color = colorResource(R.color.text_dark),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp
             )
             Text(
@@ -88,7 +89,7 @@ fun LocationView(modifier: Modifier = Modifier, lat: Double = 0.0, long: Double 
                 ),
                 fontWeight = FontWeight.Bold,
                 fontFamily = ubuntuFamily,
-                color = colorResource(R.color.text_dark),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp
             )
             Text(
@@ -97,7 +98,7 @@ fun LocationView(modifier: Modifier = Modifier, lat: Double = 0.0, long: Double 
                     lineHeight = 16.sp // adjust as needed, try 16–20.sp
                 ),
                 fontFamily = ubuntuFamily,
-                color = colorResource(R.color.text_dark),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp
             )
         }

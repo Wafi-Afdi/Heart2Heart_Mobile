@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +40,7 @@ fun ContactView(modifier: Modifier) {
     Column (
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(colorResource(R.color.primary_light))
+            .background(MaterialTheme.colorScheme.surface)
             .padding(12.dp)
             .width(10.dp)
             .height(100.dp)
@@ -53,7 +54,7 @@ fun ContactView(modifier: Modifier) {
                 lineHeight = 16.sp // adjust as needed, try 16–20.sp
             ),
             fontFamily = ubuntuFamily,
-            color = colorResource(R.color.white),
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
         )
@@ -66,7 +67,7 @@ fun ContactView(modifier: Modifier) {
                 ),
                 fontFamily = ubuntuFamily,
                 maxLines = 1,
-                color = colorResource(R.color.white),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 overflow = TextOverflow.Ellipsis,
@@ -78,7 +79,7 @@ fun ContactView(modifier: Modifier) {
                 ),
                 fontFamily = ubuntuFamily,
                 maxLines = 1,
-                color = colorResource(R.color.white),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 overflow = TextOverflow.Ellipsis,

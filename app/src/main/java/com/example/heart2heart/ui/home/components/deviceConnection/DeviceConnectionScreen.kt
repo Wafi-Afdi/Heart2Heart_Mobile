@@ -1,6 +1,8 @@
 package com.example.heart2heart.ui.home.components.deviceConnection
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -16,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -46,7 +49,11 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 @Composable
-fun DeviceInfoView(isConnected: Boolean = true, lastConnectionTime: LocalDateTime = LocalDateTime.of(2025, 10, 23, 15, 45, 30)) {
+fun DeviceInfoView(
+    isConnected: Boolean = true,
+    lastConnectionTime: LocalDateTime = LocalDateTime.of(2025, 10, 23, 15, 45, 30),
+    onDeviceButtonClick: () -> Unit = {}
+) {
 
     val now = LocalDateTime.now()
     val duration = Duration.between(lastConnectionTime, now)
@@ -81,7 +88,7 @@ fun DeviceInfoView(isConnected: Boolean = true, lastConnectionTime: LocalDateTim
             .padding(horizontal = 16.dp, vertical = 0.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(colorResource(R.color.primary_light))
+            .background(MaterialTheme.colorScheme.surface)
             .height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -98,7 +105,7 @@ fun DeviceInfoView(isConnected: Boolean = true, lastConnectionTime: LocalDateTim
                     lineHeight = 16.sp // adjust as needed, try 16–20.sp
                 ),
                 fontFamily = ubuntuFamily,
-                color = colorResource(R.color.white),
+                color = if (isSystemInDarkTheme()) colorResource(R.color.text_dark) else colorResource(R.color.text_light),
                 fontSize = 14.sp,
             )
             Row(
@@ -108,7 +115,7 @@ fun DeviceInfoView(isConnected: Boolean = true, lastConnectionTime: LocalDateTim
                     Icon(
                         imageVector = Ecg_heart,
                         contentDescription = "ECG Icon",
-                        tint = colorResource(R.color.white),
+                        tint = if (isSystemInDarkTheme()) colorResource(R.color.text_dark) else colorResource(R.color.text_light),
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(Modifier.width(4.dp))
@@ -119,7 +126,7 @@ fun DeviceInfoView(isConnected: Boolean = true, lastConnectionTime: LocalDateTim
                         ),
                         fontFamily = ubuntuFamily,
                         fontWeight = FontWeight.Bold,
-                        color = colorResource(R.color.white),
+                        color = if (isSystemInDarkTheme()) colorResource(R.color.text_dark) else colorResource(R.color.text_light),
                         fontSize = 14.sp,
                     )
                 }
@@ -133,28 +140,68 @@ fun DeviceInfoView(isConnected: Boolean = true, lastConnectionTime: LocalDateTim
         )
         Row(
             modifier = Modifier
-                .weight(1f) // w-full equivalent, takes up 1 part of the available space
+                .weight(1f)
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 0.dp,
+                        topEnd = 8.dp,
+                        bottomStart = 0.dp,
+                        bottomEnd = 8.dp
+                    )
+                )
+                .background(
+                    if (isConnected) {
+                        colorResource(R.color.success)
+                    } else {
+                        if (isSystemInDarkTheme()) colorResource(R.color.neutral_900) else colorResource(R.color.neutral_300)
+                    }
+                )
                 .fillMaxHeight()
-                .padding(8.dp),
+                .padding(8.dp)
+                .clickable {
+                    if (!isConnected) {
+                        onDeviceButtonClick()
+                    }
+                }
+            ,
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.Start,
+
         ) {
             Icon(
                 imageVector = CpuChip,
                 contentDescription = "Device Icon",
-                tint = colorResource(R.color.white),
+                tint =
+                    if (isConnected) {
+                        colorResource(R.color.text_dark)
+                    } else {
+                        if (isSystemInDarkTheme()) colorResource(R.color.text_dark) else colorResource(R.color.neutral_900)
+                    }
+                ,
                 modifier = Modifier.size(36.dp)
             )
             Spacer(Modifier.width(2.dp))
-            Text(
-                text = DeviceConnectionInfo,
-                style = LocalTextStyle.current.copy(
-                    lineHeight = 16.sp // adjust as needed, try 16–20.sp
-                ),
-                fontFamily = ubuntuFamily,
-                color = colorResource(R.color.white),
-                fontSize = 14.sp,
-            )
+            if (isConnected) {
+                Text(
+                    text = DeviceConnectionInfo,
+                    style = LocalTextStyle.current.copy(
+                        lineHeight = 16.sp // adjust as needed, try 16–20.sp
+                    ),
+                    fontFamily = ubuntuFamily,
+                    color = colorResource(R.color.text_dark),
+                    fontSize = 14.sp,
+                )
+            } else {
+                Text(
+                    text = "Not connected to ECG",
+                    style = LocalTextStyle.current.copy(
+                        lineHeight = 16.sp // adjust as needed, try 16–20.sp
+                    ),
+                    fontFamily = ubuntuFamily,
+                    color = if (isSystemInDarkTheme()) colorResource(R.color.text_dark) else colorResource(R.color.neutral_900),
+                    fontSize = 14.sp,
+                )
+            }
         }
     }
 }

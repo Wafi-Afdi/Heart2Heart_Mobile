@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,7 +41,7 @@ fun ReportView() {
                 "Report",
                 fontFamily = poppinsFamily,
                 fontWeight = FontWeight.Bold,
-                color = colorResource(R.color.primary_light),
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 16.sp,
             )
 
@@ -48,7 +49,7 @@ fun ReportView() {
                 "See more",
                 fontFamily = poppinsFamily,
                 fontWeight = FontWeight.Bold,
-                color = colorResource(R.color.primary_light),
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 12.sp,
             )
         }

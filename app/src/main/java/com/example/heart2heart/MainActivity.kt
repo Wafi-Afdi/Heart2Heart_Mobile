@@ -10,9 +10,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -119,6 +122,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Heart2HeartTheme {
+
                 var currentScreen by remember { mutableStateOf<Screen?>(null) }
                 val navController = rememberNavController()
 
@@ -126,15 +130,6 @@ class MainActivity : ComponentActivity() {
 
                 /* Bluetooth */
                 val bluetoothViewModel = hiltViewModel<BluetoothViewModel>()
-                val bluetoothViewModelState by bluetoothViewModel.state.collectAsState()
-
-                /* Sheet state */
-                val sheetState = rememberModalBottomSheetState()
-                var isSheetOpen by rememberSaveable {
-                    mutableStateOf(false)
-                }
-
-
 
                 LaunchedEffect(true) {
 
@@ -142,11 +137,19 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     bottomBar = {
-                        if( navBackStackEntry?.destination?.route == HomeScreenRoute::class.qualifiedName
-                            || navBackStackEntry?.destination?.route == SettingsRoute::class.qualifiedName
-                            || navBackStackEntry?.destination?.route == StatisticsRoute::class.qualifiedName
-                            || navBackStackEntry?.destination?.route == ContactsRoute::class.qualifiedName
+                        AnimatedVisibility(
+                            visible = if( navBackStackEntry?.destination?.route == HomeScreenRoute::class.qualifiedName
+                                || navBackStackEntry?.destination?.route == SettingsRoute::class.qualifiedName
+                                || navBackStackEntry?.destination?.route == StatisticsRoute::class.qualifiedName
+                                || navBackStackEntry?.destination?.route == ContactsRoute::class.qualifiedName
                             ) {
+                                true
+                            } else {
+                                false
+                            },
+                            enter = slideInVertically(initialOffsetY = { it }),
+                            exit = slideOutVertically(targetOffsetY = { it }),
+                        ) {
                             BottomNavigationScreen(
                                 screens = listOf(
                                     Screen(
@@ -181,7 +184,6 @@ class MainActivity : ComponentActivity() {
                                 navController = navController
                             )
                         }
-
                     }
                 ) {
                     innerPadding ->
@@ -260,31 +262,11 @@ class MainActivity : ComponentActivity() {
                             },
                         ) {
                             composable<HomeScreenRoute> {
-                                Button(
+                                HomeScreen(
                                     modifier = Modifier.padding(innerPadding),
-                                    onClick = { isSheetOpen = true; bluetoothViewModel.startScan() }
-                                ) {
-                                    Text(text = "Start Scan")
-                                }
-                                // HomeScreen(modifier = Modifier.padding(innerPadding))
-                                if (isSheetOpen) {
-                                    ModalBottomSheet(
-                                        sheetState = sheetState,
-                                        onDismissRequest = {
-                                            isSheetOpen = false
-                                            bluetoothViewModel.stopScan()
-                                        }
-                                    ) {
-                                        LazyColumn {
-                                            items(bluetoothViewModelState.scannedDevices) {
-                                                    devices ->
-                                                Text(
-                                                    text = devices.name ?: "No Name",
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
+                                    bluetoothViewModel = bluetoothViewModel,
+                                    navController = navController
+                                )
                             }
 
                             composable<SettingsRoute> {

@@ -29,7 +29,7 @@ import com.example.heart2heart.ui.theme.ubuntuFamily
 import com.example.heart2heart.utils.SettingsIcon
 
 @Composable
-fun TitleView() {
+fun TitleView(onClickSetting: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -66,14 +66,12 @@ fun TitleView() {
         IconButton(
             onClick = {
                 println("Favorite button clicked!")
+                onClickSetting()
             },
-            // The size is now implicitly determined by the icon size + IconButton's
-            // default size, but we can override this using a fixed size modifier
-            // (as shown in the first example) for better control.
             modifier = Modifier
                 .background(
                     color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(8.dp) // Apply shape directly to background
+                    shape = RoundedCornerShape(8.dp)
                 )
         ) {
             // The Icon itself is now the correct size (e.g., 24.dp)

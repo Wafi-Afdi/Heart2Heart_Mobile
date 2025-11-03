@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,7 +38,7 @@ fun NavButtonForMode(
                 onClick()
             }
             .clip(RoundedCornerShape(12.dp)) // Apply rounded corners
-            .background(Color.LightGray) // Set a background color
+            .background(MaterialTheme.colorScheme.surface) // Set a background color
             .padding(8.dp)
             ,
         horizontalAlignment = Alignment.Start,
@@ -46,7 +47,7 @@ fun NavButtonForMode(
         Text(
             title,
             style = TextStyle(
-                color = colorResource(R.color.primary_light),
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = ubuntuFamily,
@@ -58,7 +59,7 @@ fun NavButtonForMode(
         Text(
             description,
             style = TextStyle(
-                color = colorResource(R.color.black),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp,
                 fontFamily = poppinsFamily,
             )

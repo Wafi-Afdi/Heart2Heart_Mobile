@@ -22,10 +22,10 @@ private fun getDarkColorScheme(darkTheme: Boolean): ColorScheme {
         primary = colorResource(R.color.primary_dark),
         secondary = colorResource(R.color.secondary_dark),
         tertiary = colorResource(R.color.accent_dark),
-        background = Color(0xFF010104), // Fixed hexadecimal colors are fine
-        surface = Color.Black,
+        background = Color.Black, // Fixed hexadecimal colors are fine
+        surface = Color(0xFF121212),
         onSurface = colorResource(R.color.text_dark),
-        onPrimary = colorResource(R.color.text_dark),
+        onPrimary = colorResource(R.color.text_light),
         onSecondary = colorResource(R.color.text_dark),
         onTertiary = colorResource(R.color.text_dark),
         onBackground = colorResource(R.color.text_dark),
@@ -40,7 +40,7 @@ private fun getLightColorScheme(darkTheme: Boolean): ColorScheme {
         primary = colorResource(R.color.primary_light),
         secondary = colorResource(R.color.secondary_light),
         tertiary = colorResource(R.color.accent_light),
-        background = Color(0xFFFFFBFE),
+        background = colorResource(R.color.text_dark),
         surface = Color.White,
         onPrimary = colorResource(R.color.text_dark), // Consider using a lighter color for onPrimary in light theme if needed
         onSecondary = colorResource(R.color.text_dark),
@@ -55,7 +55,7 @@ private fun getLightColorScheme(darkTheme: Boolean): ColorScheme {
 fun Heart2HeartTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
 

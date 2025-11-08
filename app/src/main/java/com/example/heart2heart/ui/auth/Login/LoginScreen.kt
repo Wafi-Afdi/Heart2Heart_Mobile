@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -20,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.heart2heart.R
+import com.example.heart2heart.auth.presentation.LoginUIState
 import com.example.heart2heart.ui.home.HomeScreen
 import com.example.heart2heart.ui.theme.ubuntuFamily
 import com.example.heart2heart.utils.Eye
@@ -53,13 +56,13 @@ private const val SIGN_UP_TAG = "SIGN_UP"
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
+    uiState: LoginUIState,
+    onEmailChange: (String) -> Unit = {},
+    onPasswordChange: (String) -> Unit = {},
     onSignUpClicked: () -> Unit = {},
-    onLoginButtonClicked: () -> Unit = {},
+    onLoginButtonClicked: () -> Unit = {}
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
-
     val visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation()
 
     val annotatedText = buildAnnotatedString {
@@ -73,7 +76,7 @@ fun LoginScreen(
         )
         withStyle(
             style = SpanStyle(
-                color = colorResource(R.color.primary_light),
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 textDecoration = TextDecoration.Underline
             )
@@ -95,8 +98,8 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
             ,
-            value = email,
-            onValueChange = { email = it },
+            value = uiState.email,
+            onValueChange = onEmailChange,
             label = { Text("Email") },
             leadingIcon = {
                 Icon(
@@ -111,8 +114,8 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
             ,
-            value = password,
-            onValueChange = { password = it },
+            value = uiState.password,
+            onValueChange = onPasswordChange,
             label = { Text("Password") },
             leadingIcon = {
                 Icon(
@@ -138,24 +141,35 @@ fun LoginScreen(
 
         Button(
             onClick = onLoginButtonClicked,
+            enabled = !uiState.isLoading,
+
             modifier = Modifier
                 .fillMaxWidth()
             ,
             shape = RoundedCornerShape(8.dp),
             colors = ButtonColors(
-                containerColor = colorResource(R.color.primary_light),
-                contentColor = colorResource(R.color.text_dark),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 disabledContentColor = colorResource(R.color.neutral_900),
                 disabledContainerColor = colorResource(R.color.neutral_700)
             )
         ) {
-            // Button content
-            Text(
-                text = "Login",
-                modifier = Modifier.padding(vertical = 4.dp),
-                fontFamily = ubuntuFamily,
-                fontSize = 16.sp,
-            )
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+            }
+            else {
+                // Button content
+                Text(
+                    text = "Login",
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    fontFamily = ubuntuFamily,
+                    fontSize = 16.sp,
+                )
+            }
         }
 
         Spacer(Modifier.height(16.dp))
@@ -187,9 +201,11 @@ fun LoginScreen(
 @Preview(showBackground = true, name = "My Component in a Scaffold")
 @Composable
 fun MyIsolatedComponentPreview() {
+    val uiState: LoginUIState = LoginUIState()
+
     PreviewWrapperWithScaffold { paddingValues ->
         // Call your isolated component inside the wrapper's content lambda,
         // using the padding provided by the Scaffold.
-        LoginScreen(modifier = Modifier.padding(paddingValues))
+        LoginScreen(modifier = Modifier.padding(paddingValues), uiState = uiState)
     }
 }

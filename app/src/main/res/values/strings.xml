@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Heart2Heart</string>
+    <string name="local_base_url">Heart2Heart</string>
 </resources>

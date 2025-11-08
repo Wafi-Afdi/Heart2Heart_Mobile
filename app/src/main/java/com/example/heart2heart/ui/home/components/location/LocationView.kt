@@ -1,6 +1,9 @@
 package com.example.heart2heart.ui.home.components.location
 
+import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -22,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -29,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.heart2heart.ECGExtraction.domain.ECGForegroundService
 import com.example.heart2heart.R
 import com.example.heart2heart.ui.theme.poppinsFamily
 import com.example.heart2heart.ui.theme.ubuntuFamily
@@ -36,7 +41,7 @@ import com.example.heart2heart.utils.Location_on
 
 @Composable
 fun LocationView(modifier: Modifier = Modifier, lat: Double = 0.0, long: Double = 0.0, provinceState: String = "Jakarta", nation: String = "Indonesia") {
-
+    val app = LocalContext.current
     val latituteAndLongitute = buildAnnotatedString {
         append("Lat: ")
 

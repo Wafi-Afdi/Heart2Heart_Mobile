@@ -52,7 +52,8 @@ import java.time.LocalDateTime
 fun DeviceInfoView(
     isConnected: Boolean = true,
     lastConnectionTime: LocalDateTime = LocalDateTime.of(2025, 10, 23, 15, 45, 30),
-    onDeviceButtonClick: () -> Unit = {}
+    onDeviceButtonClick: () -> Unit = {},
+    disconnectDevice: () -> Unit = {},
 ) {
 
     val now = LocalDateTime.now()
@@ -161,6 +162,9 @@ fun DeviceInfoView(
                 .clickable {
                     if (!isConnected) {
                         onDeviceButtonClick()
+                    }
+                    else {
+                        disconnectDevice()
                     }
                 }
             ,

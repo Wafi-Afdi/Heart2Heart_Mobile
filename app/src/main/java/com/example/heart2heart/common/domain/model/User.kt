@@ -16,10 +16,7 @@ import java.util.UUID
 data class User(
     @PrimaryKey val id: UUID = UUID.fromString(DEFAULT_UUID),
     val email: String,
-    val tanggalLahir: Date?,
-    val jenisKelamin: Int?,
-    val firstName: String?,
-    val lastName: String?,
+    val name: String?,
     val phoneNumber: String?
 ) {
     companion object {

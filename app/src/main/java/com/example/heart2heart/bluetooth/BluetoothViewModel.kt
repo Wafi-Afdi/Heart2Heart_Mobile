@@ -1,9 +1,12 @@
 package com.example.heart2heart.bluetooth
 
 import android.annotation.SuppressLint
+import android.app.Application
+import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.heart2heart.ECGExtraction.domain.ECGForegroundService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Job
@@ -21,7 +24,8 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class BluetoothViewModel @Inject constructor(
-    private val bluetoothController: BluetoothServiceECG
+    private val bluetoothController: BluetoothServiceECG,
+    private val app: Application
 ): ViewModel() {
     private val _state = MutableStateFlow(BluetoothUIState())
     val state = combine(
@@ -80,6 +84,9 @@ class BluetoothViewModel @Inject constructor(
                 isConnected = false
             )
         }
+        Intent(app, ECGForegroundService::class.java).also {
+            app.stopService(it)
+        }
     }
 
     fun waitForIncomingConnection() {
@@ -108,6 +115,9 @@ class BluetoothViewModel @Inject constructor(
                             errorMessage = null,
                         )
                     }
+                    Intent(app, ECGForegroundService::class.java).also {
+                        app.startService(it)
+                    }
                 }
                 is ConnectionResult.Error -> {
                     _state.update {
@@ -116,6 +126,9 @@ class BluetoothViewModel @Inject constructor(
                             isConnecting = false,
                             errorMessage = result.message,
                         )
+                    }
+                    Intent(app, ECGForegroundService::class.java).also {
+                        app.stopService(it)
                     }
                 }
                 is ConnectionResult.TransferSucceeded -> {

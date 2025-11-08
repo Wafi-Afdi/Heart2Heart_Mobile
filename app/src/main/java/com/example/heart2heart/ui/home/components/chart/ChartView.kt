@@ -1,5 +1,7 @@
 package com.example.heart2heart.ui.home.components.chart
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,12 +31,15 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.heart2heart.ECGExtraction.presentation.ECGChartViewModel
 import com.example.heart2heart.R
 import com.example.heart2heart.ui.theme.ubuntuFamily
+import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.layout.fullWidth
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
 import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
+import com.patrykandpatrick.vico.core.chart.layout.HorizontalLayout
 import com.patrykandpatrick.vico.core.chart.line.LineChart
 import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
 import com.patrykandpatrick.vico.core.component.shape.Shapes
@@ -45,14 +50,14 @@ import com.patrykandpatrick.vico.core.scroll.AutoScrollCondition
 import com.patrykandpatrick.vico.core.scroll.InitialScroll
 
 @Composable
-fun ChartView() {
+fun ChartView(
+    isConnected: Boolean = false,
+    userBeingViewed: String? = "Nobody"
+) {
     val dataPoints = listOf(4f, 12f, 8f, 16f, 11f, 14f, 10f,20f,3f,4f,5f,6f,5f,1f,2f)
 
     val ecgViewModel = hiltViewModel<ECGChartViewModel>()
     val pointsState by ecgViewModel.points.collectAsState()
-
-
-
 
     val chartEntryModel = remember(pointsState) {
         if (pointsState.isEmpty()) {
@@ -100,21 +105,31 @@ fun ChartView() {
 
                     )
                 ),
-                spacing = 3.dp
-                // axisValuesOverrider = AxisValuesOverrider.fixed(minY = 0f, maxY = 10f)
+                spacing = 1.dp,
+                axisValuesOverrider = AxisValuesOverrider.fixed(minY = -2f, maxY = 2f)
             ),
             chartScrollSpec = rememberChartScrollSpec(
                 initialScroll = InitialScroll.End,
                 autoScrollCondition = AutoScrollCondition.OnModelSizeIncreased,
                 isScrollEnabled = true,
+                autoScrollAnimationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                ),
             ),
             model = chartEntryModel,
+            // chartModelProducer = ecgViewModel.chartModelProducer,
             startAxis = rememberStartAxis(
                 label = textComponent {
-                    color = Color.White.hashCode()
+                    color = Color.White.toArgb()
+                    textSizeSp = 4f
 
                 },
             ),
+            bottomAxis = rememberBottomAxis(
+
+            ),
+            horizontalLayout = HorizontalLayout.fullWidth(),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)

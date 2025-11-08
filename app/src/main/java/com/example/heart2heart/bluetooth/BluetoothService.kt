@@ -10,11 +10,13 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.text.SpannableStringBuilder
 import android.util.Log
 import androidx.annotation.RequiresPermission
-import com.example.heart2heart.utils.Mail
+import com.example.heart2heart.ECGExtraction.domain.TextUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -31,6 +34,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.UUID
+
 
 @SuppressLint("MissingPermission")
 class BluetoothServiceECG(
@@ -67,6 +71,11 @@ class BluetoothServiceECG(
     override val errors: SharedFlow<String>
         get() = _errors.asSharedFlow()
 
+//    private val serviceJob = SupervisorJob()
+//    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
+
+    private val _incomingSamples = MutableSharedFlow<String>(replay = 100, extraBufferCapacity = 1000)
+    val incomingSamples: SharedFlow<String> = _incomingSamples.asSharedFlow()
 
 
     private val bluetoothStateReceiver = BluetoothStateReceiver { isConnected, device ->
@@ -140,13 +149,13 @@ class BluetoothServiceECG(
                     null
                 }
                 emit(ConnectionResult.ConnectionEstablished)
-                currentClientSocket?.let {
+                currentClientSocket?.let { it ->
                     currentServerSocket?.close()
                     val service = BluetoothDataTransferService(it)
                     dataTransferService = service
 
                     emitAll(service.listenForIncomingMessage().map {
-                        ConnectionResult.TransferSucceeded(it)
+                        ConnectionResult.TransferSucceeded(it.toString())
                     })
                 }
             }
@@ -154,6 +163,10 @@ class BluetoothServiceECG(
             closeConnection()
         }.flowOn(Dispatchers.IO)
     }
+
+
+    private var _pendingCarriageReturn = false
+    private val _buffer = StringBuilder()
 
     override fun connectToDevice(device: BluetoothDataModel): Flow<ConnectionResult> {
         return flow {
@@ -180,11 +193,47 @@ class BluetoothServiceECG(
                     Log.i("BLUETOOTHECG", "Connection Established")
                     BluetoothDataTransferService(socket).also {
                         dataTransferService = it
-                        emitAll(
-                            it.listenForIncomingMessage().map {
-                                ConnectionResult.TransferSucceeded(it)
-                            }
-                        )
+                        it
+                                .listenForIncomingMessage()
+                                .collect { raw ->
+                                    val textChunk = raw.decodeToString()
+                                    _buffer.append(textChunk)
+
+                                    var delimiterIndex: Int
+                                    while (true) {
+                                        delimiterIndex = _buffer.indexOf("\r\n")
+                                        if (delimiterIndex == -1) break // No full message yet
+
+                                        // Extract one full line
+                                        val message = _buffer.substring(0, delimiterIndex)
+                                        _buffer.delete(0, delimiterIndex + 2) // Remove up to CRLF
+
+                                        if (message.isNotBlank()) {
+                                            // Log.w("BluetoothServiceECG", message)
+                                            _incomingSamples.emit(message)
+                                        }
+                                    }
+//                                val samples = parser.feed(raw)
+//                                samples.forEach { sample ->
+//                                    // emit into your shared flow, or process/store
+//                                    _incomingSamples.emit(raw)
+//                                }
+//                                val sample = raw.toDoubleOrNull()
+//                                if (sample != null) {
+//                                    _incomingSamples.emit(sample)
+//                                } else {
+//                                    Log.w("BluetoothServiceECG", "Non-numeric data: $raw")
+//                                }
+                        }
+//                        emitAll(
+//                            it.listenForIncomingMessage()
+//                                .catch {
+//                                    emit(ConnectionResult.Error("Connection was interrupted"))
+//                                }
+//                                .map {
+//                                ConnectionResult.TransferSucceeded(it.toString())
+//                            }
+//                        )
                     }
 
                 } catch (e: IOException) {
@@ -194,6 +243,9 @@ class BluetoothServiceECG(
                     emit(ConnectionResult.Error("Connection was interrupted"))
                 }
             }
+        }.catch {
+            emit(ConnectionResult.Error("Connection was interrupted"))
+            closeConnection()
         }.onCompletion {
             closeConnection()
         }.flowOn(Dispatchers.IO)

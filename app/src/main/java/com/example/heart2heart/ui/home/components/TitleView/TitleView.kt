@@ -24,12 +24,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.heart2heart.R
+import com.example.heart2heart.auth.data.AppType
 import com.example.heart2heart.ui.theme.poppinsFamily
 import com.example.heart2heart.ui.theme.ubuntuFamily
 import com.example.heart2heart.utils.SettingsIcon
 
 @Composable
-fun TitleView(onClickSetting: () -> Unit = {}) {
+fun TitleView(
+    onClickSetting: () -> Unit = {},
+    name: String = "Unknown User",
+    appType: AppType? = null,
+) {
     Row(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -48,7 +53,7 @@ fun TitleView(onClickSetting: () -> Unit = {}) {
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                "Wafi Afdi A",
+                name,
                 fontFamily = ubuntuFamily,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 16.sp,
@@ -56,7 +61,12 @@ fun TitleView(onClickSetting: () -> Unit = {}) {
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                "Currently in ambulatory mode",
+                    when(appType) {
+                        AppType.OBSERVER -> "Currently in observer mode"
+                        AppType.AMBULATORY -> "Currently in ambulatory mode"
+                        else -> "Unknown mode"
+                                  }
+                ,
                 fontFamily = poppinsFamily,
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 14.sp,

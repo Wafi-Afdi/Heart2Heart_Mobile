@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -11,6 +13,15 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
+val beApiUrl = localProperties.getProperty("Heart2Heart.BE_API_LOCAL") // Fallback to local.properties
+    ?: "http:127.0.0.1"
+
 android {
     namespace = "com.example.heart2heart"
     compileSdk = 36
@@ -21,6 +32,7 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "BE_API_LOCAL", "\"$beApiUrl\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -49,6 +61,8 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
+
     }
 }
 
@@ -84,6 +98,10 @@ dependencies {
     // HTTP Request
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // Arrow
+    implementation("io.arrow-kt:arrow-core:1.2.0")
+    implementation("io.arrow-kt:arrow-fx-coroutines:1.2.0")
 
     // Charts
     implementation("com.patrykandpatrick.vico:compose:1.13.1")

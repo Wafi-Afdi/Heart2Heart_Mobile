@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -38,6 +39,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.heart2heart.R
+import com.example.heart2heart.auth.presentation.LoginUIState
+import com.example.heart2heart.auth.presentation.RegisterUIState
 import com.example.heart2heart.ui.theme.ubuntuFamily
 import com.example.heart2heart.utils.Eye
 import com.example.heart2heart.utils.EyeSlash
@@ -50,13 +53,17 @@ import com.example.heart2heart.utils.PreviewWrapperWithScaffold
 private const val LOGIN_TAG = "LOGIN"
 
 @Composable
-fun SignUpScreen(modifier: Modifier = Modifier, onLoginClicked: () -> Unit = {}, onRegisterSuccess: () -> Unit = {}) {
-    var email by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
-    var fullName by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+fun SignUpScreen(
+    modifier: Modifier = Modifier,
+    onLoginClicked: () -> Unit = {},
+    uiState: RegisterUIState,
+    onEmailChange: (String) -> Unit = {},
+    onPasswordChange: (String) -> Unit = {},
+    onPhoneChange: (String) -> Unit = {},
+    onFullNameChange: (String) -> Unit = {},
+    onRegisterClick: () -> Unit = {},
+) {
     var showPassword by remember { mutableStateOf(false) }
-
     val visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation()
 
     val annotatedText = buildAnnotatedString {
@@ -93,8 +100,8 @@ fun SignUpScreen(modifier: Modifier = Modifier, onLoginClicked: () -> Unit = {},
             modifier = Modifier
                 .fillMaxWidth()
             ,
-            value = fullName,
-            onValueChange = { fullName = it },
+            value = uiState.fullName,
+            onValueChange = onFullNameChange,
             label = { Text("Full Name") },
             leadingIcon = {
                 Icon(
@@ -110,8 +117,8 @@ fun SignUpScreen(modifier: Modifier = Modifier, onLoginClicked: () -> Unit = {},
             modifier = Modifier
                 .fillMaxWidth()
             ,
-            value = email,
-            onValueChange = { email = it },
+            value = uiState.email,
+            onValueChange = onEmailChange,
             label = { Text("Email") },
             leadingIcon = {
                 Icon(
@@ -127,8 +134,8 @@ fun SignUpScreen(modifier: Modifier = Modifier, onLoginClicked: () -> Unit = {},
             modifier = Modifier
                 .fillMaxWidth()
             ,
-            value = phoneNumber,
-            onValueChange = { phoneNumber = it },
+            value = uiState.phone,
+            onValueChange = onPhoneChange,
             label = { Text("Phone Number") },
             leadingIcon = {
                 Icon(
@@ -144,8 +151,8 @@ fun SignUpScreen(modifier: Modifier = Modifier, onLoginClicked: () -> Unit = {},
             modifier = Modifier
                 .fillMaxWidth()
             ,
-            value = password,
-            onValueChange = { password = it },
+            value = uiState.password,
+            onValueChange = onPasswordChange,
             label = { Text("Password") },
             leadingIcon = {
                 Icon(
@@ -170,25 +177,36 @@ fun SignUpScreen(modifier: Modifier = Modifier, onLoginClicked: () -> Unit = {},
         Spacer(Modifier.height(8.dp))
 
         Button(
-            onClick = onRegisterSuccess,
+            onClick = onRegisterClick,
             modifier = Modifier
                 .fillMaxWidth()
             ,
+            enabled = !uiState.isLoading,
             shape = RoundedCornerShape(8.dp),
             colors = ButtonColors(
-                containerColor = colorResource(R.color.primary_light),
-                contentColor = colorResource(R.color.text_dark),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 disabledContentColor = colorResource(R.color.neutral_900),
                 disabledContainerColor = colorResource(R.color.neutral_700)
             )
         ) {
             // Button content
-            Text(
-                text = "Register",
-                modifier = Modifier.padding(vertical = 4.dp),
-                fontFamily = ubuntuFamily,
-                fontSize = 16.sp,
-            )
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+            }
+            else {
+                // Button content
+                Text(
+                    text = "Register",
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    fontFamily = ubuntuFamily,
+                    fontSize = 16.sp,
+                )
+            }
         }
 
         Spacer(Modifier.height(16.dp))
@@ -222,9 +240,10 @@ fun SignUpScreen(modifier: Modifier = Modifier, onLoginClicked: () -> Unit = {},
 @Preview(showBackground = true, name = "My Component in a Scaffold")
 @Composable
 fun MyIsolatedComponentPreview() {
+    val uiState: RegisterUIState = RegisterUIState()
     PreviewWrapperWithScaffold { paddingValues ->
         // Call your isolated component inside the wrapper's content lambda,
         // using the padding provided by the Scaffold.
-        SignUpScreen(modifier = Modifier.padding(paddingValues))
+        SignUpScreen(modifier = Modifier.padding(paddingValues), uiState = uiState)
     }
 }

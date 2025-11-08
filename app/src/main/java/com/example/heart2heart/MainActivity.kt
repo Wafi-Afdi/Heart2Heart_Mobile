@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -48,12 +49,19 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import com.example.heart2heart.auth.data.AppType
+import com.example.heart2heart.auth.presentation.LoginViewModel
+import com.example.heart2heart.auth.presentation.RegisterViewModel
 import com.example.heart2heart.bluetooth.BluetoothViewModel
+import com.example.heart2heart.home.presentation.HomeViewModel
 import com.example.heart2heart.ui.auth.Login.LoginScreen
 import com.example.heart2heart.ui.auth.SignUp.SignUpScreen
+import com.example.heart2heart.ui.auth.SignUp.SignupRouteScreen
 import com.example.heart2heart.ui.contact.ContactScreen
+import com.example.heart2heart.ui.contact.ContactScreenRoute
 import com.example.heart2heart.ui.home.HomeScreen
 import com.example.heart2heart.ui.intro.ChooseModeScreen
+import com.example.heart2heart.ui.intro.components.ChooseModeScreenViewModel
 import com.example.heart2heart.ui.navigation.BottomNavigationScreen
 import com.example.heart2heart.ui.navigation.Screen
 import com.example.heart2heart.ui.setting.SettingScreen
@@ -116,6 +124,21 @@ class MainActivity : ComponentActivity() {
                 arrayOf(
                     android.Manifest.permission.BLUETOOTH_SCAN,
                     android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.FOREGROUND_SERVICE,
+                )
+            )
+        }
+        if (Build.VERSION.SDK_INT >= 33) {
+            permissionLauncher.launch(
+                arrayOf(
+                    android.Manifest.permission.POST_NOTIFICATIONS,
+                )
+            )
+        }
+        if (Build.VERSION.SDK_INT >= 34) {
+            permissionLauncher.launch(
+                arrayOf(
+                    android.Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC,
                 )
             )
         }
@@ -189,7 +212,7 @@ class MainActivity : ComponentActivity() {
                     innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = AuthRoute,
+                        startDestination = MainScreenRoute,
                         enterTransition = {
                             slideInHorizontally(
                                 initialOffsetX = { fullWidth -> fullWidth },
@@ -204,12 +227,20 @@ class MainActivity : ComponentActivity() {
                         },
                     ) {
                         composable<ChooseModeScreenRoute> {
+                            val chooseModeScreenViewModel = hiltViewModel<ChooseModeScreenViewModel>()
                             ChooseModeScreen(
+                                getProfile = chooseModeScreenViewModel::getUserData,
                                 onClickObserver = {
-                                    navController.navigate(MainScreenRoute)
+                                    if (chooseModeScreenViewModel.uiState.value.profileSuccess) {
+                                        chooseModeScreenViewModel.setAppType(AppType.OBSERVER)
+                                        navController.navigate(MainScreenRoute)
+                                    }
                                 },
                                 onClickAmbulatory = {
-                                    navController.navigate(MainScreenRoute)
+                                    if (chooseModeScreenViewModel.uiState.value.profileSuccess) {
+                                        chooseModeScreenViewModel.setAppType(AppType.AMBULATORY)
+                                        navController.navigate(MainScreenRoute)
+                                    }
                                 }
                             )
                         }
@@ -219,27 +250,30 @@ class MainActivity : ComponentActivity() {
 
                         ) {
                             composable<LoginRoute> {
-                                LoginScreen(
-                                    modifier = Modifier.padding(innerPadding),
-                                    onLoginButtonClicked = {
-                                        navController.navigate(ChooseModeScreenRoute) {
-                                            popUpTo<AuthRoute> { inclusive = true }
-                                        }
-                                    },
+                                val loginViewModel = hiltViewModel<LoginViewModel>()
+                                com.example.heart2heart.ui.auth.Login.LoginRoute(
+                                    loginViewModel,
                                     onSignUpClicked = {
                                         navController.navigate(SignUpRoute) {
+
+                                        }
+                                    },
+                                    onLoginSuccess = {
+                                        navController.navigate(ChooseModeScreenRoute) {
+                                            popUpTo<AuthRoute> { inclusive = true }
                                         }
                                     }
                                 )
                             }
-
                             composable<SignUpRoute> {
-                                SignUpScreen(
+                                val registerViewModel = hiltViewModel<RegisterViewModel>()
+                                SignupRouteScreen(
                                     modifier = Modifier.padding(innerPadding),
-                                    onLoginClicked = {
+                                    viewModel = registerViewModel,
+                                    onRegisterSuccess = {
                                         navController.navigate(LoginRoute)
                                     },
-                                    onRegisterSuccess = {
+                                    onRouteToLoginClick = {
                                         navController.navigate(LoginRoute)
                                     }
                                 )
@@ -262,10 +296,12 @@ class MainActivity : ComponentActivity() {
                             },
                         ) {
                             composable<HomeScreenRoute> {
+                                val homeViewModel = hiltViewModel<HomeViewModel>()
                                 HomeScreen(
                                     modifier = Modifier.padding(innerPadding),
                                     bluetoothViewModel = bluetoothViewModel,
-                                    navController = navController
+                                    navController = navController,
+                                    homeViewModel = homeViewModel
                                 )
                             }
 
@@ -274,7 +310,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable<ContactsRoute> {
-                                ContactScreen()
+                                ContactScreenRoute(modifier = Modifier.padding(innerPadding))
                             }
 
                             composable<StatisticsRoute> {

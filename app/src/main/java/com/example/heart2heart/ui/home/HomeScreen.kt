@@ -48,8 +48,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.heart2heart.R
+import com.example.heart2heart.auth.data.AppType
 import com.example.heart2heart.bluetooth.BluetoothUIState
 import com.example.heart2heart.bluetooth.BluetoothViewModel
+import com.example.heart2heart.home.presentation.HomeViewModel
 import com.example.heart2heart.ui.home.components.TitleView.TitleView
 import com.example.heart2heart.ui.home.components.chart.ChartView
 import com.example.heart2heart.ui.home.components.contacts.ContactView
@@ -65,11 +67,17 @@ import com.example.heart2heart.utils.PreviewWrapperWithScaffold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, bluetoothViewModel: BluetoothViewModel, navController: NavHostController = rememberNavController()) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    bluetoothViewModel: BluetoothViewModel,
+    navController: NavHostController = rememberNavController(),
+    homeViewModel: HomeViewModel,
+) {
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
 
     val bluetoothViewModelState by bluetoothViewModel.state.collectAsState()
+    val userHomeState by homeViewModel.userHomeState.collectAsState()
 
     val sheetState = rememberModalBottomSheetState()
     var isSheetOpen by rememberSaveable {
@@ -120,16 +128,32 @@ fun HomeScreen(modifier: Modifier = Modifier, bluetoothViewModel: BluetoothViewM
                 TitleView(
                     onClickSetting = {
                         navController.navigate(ChooseModeScreenRoute)
-                    }
+                    },
+                    name = userHomeState.name,
+                    appType = userHomeState.appType
                 )
                 Spacer(Modifier.height(8.dp))
-                ChartView()
+                ChartView(
+                    isConnected = bluetoothViewModelState.isConnected,
+                    userBeingViewed = (
+                        if (userHomeState.appType == AppType.AMBULATORY) {
+                            userHomeState.name
+                        } else if (userHomeState.appType == AppType.OBSERVER) {
+                            userHomeState.userBeingMonitored?.name
+                        } else {
+                            "Unknown"
+                        }
+                    )
+                )
                 Spacer(Modifier.height(8.dp))
                 DeviceInfoView(
                     isConnected = bluetoothViewModelState.isConnected,
                     onDeviceButtonClick = {
                         isSheetOpen = true
                         bluetoothViewModel.startScan()
+                    },
+                    disconnectDevice = {
+                        bluetoothViewModel.disconnectFromDevice()
                     }
                 )
                 Spacer(Modifier.height(8.dp))
@@ -228,13 +252,13 @@ fun HomeScreen(modifier: Modifier = Modifier, bluetoothViewModel: BluetoothViewM
     }
 }
 
-@Preview(showBackground = true, name = "My Component in a Scaffold")
-@Composable
-fun MyIsolatedComponentPreview() {
-    val bluetoothViewModel = hiltViewModel<BluetoothViewModel>()
-    PreviewWrapperWithScaffold { paddingValues ->
-        // Call your isolated component inside the wrapper's content lambda,
-        // using the padding provided by the Scaffold.
-        HomeScreen(modifier = Modifier.padding(paddingValues), bluetoothViewModel)
-    }
-}
+//@Preview(showBackground = true, name = "My Component in a Scaffold")
+//@Composable
+//fun MyIsolatedComponentPreview() {
+//    val bluetoothViewModel = hiltViewModel<BluetoothViewModel>()
+//    PreviewWrapperWithScaffold { paddingValues ->
+//        // Call your isolated component inside the wrapper's content lambda,
+//        // using the padding provided by the Scaffold.
+//        HomeScreen(modifier = Modifier.padding(paddingValues), bluetoothViewModel)
+//    }
+//}

@@ -1,6 +1,7 @@
 package com.example.heart2heart.utils
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -755,9 +756,64 @@ val Phone_android: ImageVector
         return _Phone_android!!
     }
 
+val CrossCircled: ImageVector
+    get() {
+        if (_CrossCircled != null) return _CrossCircled!!
+
+        _CrossCircled = ImageVector.Builder(
+            name = "CrossCircled",
+            defaultWidth = 15.dp,
+            defaultHeight = 15.dp,
+            viewportWidth = 15f,
+            viewportHeight = 15f
+        ).apply {
+            path(
+                fill = SolidColor(Color.Black),
+                pathFillType = PathFillType.EvenOdd
+            ) {
+                moveTo(0.877075f, 7.49988f)
+                curveTo(0.877075f, 3.84219f, 3.84222f, 0.877045f, 7.49991f, 0.877045f)
+                curveTo(11.1576f, 0.877045f, 14.1227f, 3.84219f, 14.1227f, 7.49988f)
+                curveTo(14.1227f, 11.1575f, 11.1576f, 14.1227f, 7.49991f, 14.1227f)
+                curveTo(3.84222f, 14.1227f, 0.877075f, 11.1575f, 0.877075f, 7.49988f)
+                close()
+                moveTo(7.49991f, 1.82704f)
+                curveTo(4.36689f, 1.82704f, 1.82708f, 4.36686f, 1.82708f, 7.49988f)
+                curveTo(1.82708f, 10.6329f, 4.36689f, 13.1727f, 7.49991f, 13.1727f)
+                curveTo(10.6329f, 13.1727f, 13.1727f, 10.6329f, 13.1727f, 7.49988f)
+                curveTo(13.1727f, 4.36686f, 10.6329f, 1.82704f, 7.49991f, 1.82704f)
+                close()
+                moveTo(9.85358f, 5.14644f)
+                curveTo(10.0488f, 5.3417f, 10.0488f, 5.65829f, 9.85358f, 5.85355f)
+                lineTo(8.20713f, 7.49999f)
+                lineTo(9.85358f, 9.14644f)
+                curveTo(10.0488f, 9.3417f, 10.0488f, 9.65829f, 9.85358f, 9.85355f)
+                curveTo(9.65832f, 10.0488f, 9.34173f, 10.0488f, 9.14647f, 9.85355f)
+                lineTo(7.50002f, 8.2071f)
+                lineTo(5.85358f, 9.85355f)
+                curveTo(5.65832f, 10.0488f, 5.34173f, 10.0488f, 5.14647f, 9.85355f)
+                curveTo(4.95121f, 9.65829f, 4.95121f, 9.3417f, 5.14647f, 9.14644f)
+                lineTo(6.79292f, 7.49999f)
+                lineTo(5.14647f, 5.85355f)
+                curveTo(4.95121f, 5.65829f, 4.95121f, 5.3417f, 5.14647f, 5.14644f)
+                curveTo(5.34173f, 4.95118f, 5.65832f, 4.95118f, 5.85358f, 5.14644f)
+                lineTo(7.50002f, 6.79289f)
+                lineTo(9.14647f, 5.14644f)
+                curveTo(9.34173f, 4.95118f, 9.65832f, 4.95118f, 9.85358f, 5.14644f)
+                close()
+            }
+        }.build()
+
+        return _CrossCircled!!
+    }
+
+
+
+
+
 private var _Phone_android: ImageVector? = null
 private var _PersonCircle: ImageVector? = null
-
+private var _CrossCircled: ImageVector? = null
 
 private var _EyeSlash: ImageVector? = null
 

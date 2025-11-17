@@ -1,6 +1,7 @@
 package com.example.heart2heart.ui.home.components.report
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,11 +31,19 @@ import com.example.heart2heart.ui.theme.Heart2HeartTheme
 import com.example.heart2heart.ui.theme.poppinsFamily
 import com.example.heart2heart.ui.theme.ubuntuFamily
 import com.example.heart2heart.utils.CpuChip
+import com.example.heart2heart.utils.ExclamationCircle
 import com.example.heart2heart.utils.ThumbsupFilled
 import com.example.heart2heart.utils.TriangleRight
 
 @Composable
-fun ReportCard(modifier: Modifier = Modifier) {
+fun ReportCard(
+    modifier: Modifier = Modifier,
+    title: String = "Sinusoidal Rhythm",
+    timestamp: String = "Thu, 14 Sep 15:36",
+    isOk: Boolean = true,
+    onClickSeeMore: () -> Unit = {},
+    description: String = "",
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -51,7 +60,7 @@ fun ReportCard(modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Sinusoidal Rhytm",
+                    text = title,
                     style = LocalTextStyle.current.copy(
                         lineHeight = 16.sp
                     ),
@@ -62,15 +71,15 @@ fun ReportCard(modifier: Modifier = Modifier) {
                 )
                 Spacer(Modifier.width(4.dp))
                 Icon(
-                    imageVector = ThumbsupFilled,
+                    imageVector = if(isOk) ThumbsupFilled else ExclamationCircle,
                     contentDescription = "Ok Result",
-                    tint = colorResource(R.color.success),
+                    tint = if(isOk) colorResource(R.color.success) else colorResource(R.color.danger),
                     modifier = Modifier.size(16 .dp)
                 )
             }
 
             Text(
-                text = "Thu, 14 Sep 15:36",
+                text =timestamp,
                 style = LocalTextStyle.current.copy(
                     lineHeight = 16.sp
                 ),
@@ -83,7 +92,7 @@ fun ReportCard(modifier: Modifier = Modifier) {
         Spacer(Modifier.height(4.dp))
 
         Text(
-            text = "Descriptive text regarding the disease and other - other",
+            text = description,
             maxLines = 3,
             overflow = TextOverflow.Ellipsis,
             style = LocalTextStyle.current.copy(
@@ -95,7 +104,9 @@ fun ReportCard(modifier: Modifier = Modifier) {
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().clickable {
+                onClickSeeMore()
+            },
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {

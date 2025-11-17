@@ -34,11 +34,13 @@ import com.example.heart2heart.ui.theme.ubuntuFamily
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.entry.collectAsState
 import com.patrykandpatrick.vico.compose.chart.layout.fullWidth
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
 import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
+import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.chart.layout.HorizontalLayout
 import com.patrykandpatrick.vico.core.chart.line.LineChart
 import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
@@ -48,6 +50,9 @@ import com.patrykandpatrick.vico.core.entry.entryModelOf
 import com.patrykandpatrick.vico.core.entry.entryOf
 import com.patrykandpatrick.vico.core.scroll.AutoScrollCondition
 import com.patrykandpatrick.vico.core.scroll.InitialScroll
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun ChartView(
@@ -58,13 +63,15 @@ fun ChartView(
 
     val ecgViewModel = hiltViewModel<ECGChartViewModel>()
     val pointsState by ecgViewModel.points.collectAsState()
+    val refTime by ecgViewModel.referenceTime.collectAsState()
+
 
     val chartEntryModel = remember(pointsState) {
         if (pointsState.isEmpty()) {
             entryModelOf(
                 dataPoints.mapIndexed {
                     value, index ->
-                    entryOf(value, index)
+                    entryOf(value * 1000, index)
                 }
             )
         } else {
@@ -72,7 +79,7 @@ fun ChartView(
             entryModelOf(
                 pointsState.map { p ->
                     // subtract baseX so the x range is from 0 .. windowWidth
-                    entryOf((p.x - baseX), p.y)
+                    entryOf((p.x), p.y)
                 }
             )
         }
@@ -92,8 +99,8 @@ fun ChartView(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Wafi's Heart", color = Color.White, fontFamily = ubuntuFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Text(text = "Live", color = Color.White, fontFamily = ubuntuFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(text = "${userBeingViewed}'s Heart", color = Color.White, fontFamily = ubuntuFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(text = if (isConnected) "Live" else "Offline", color = Color.White, fontFamily = ubuntuFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
         Spacer(Modifier.height(4.dp).fillMaxWidth())
         Chart(
@@ -105,8 +112,8 @@ fun ChartView(
 
                     )
                 ),
-                spacing = 1.dp,
-                axisValuesOverrider = AxisValuesOverrider.fixed(minY = -2f, maxY = 2f)
+                spacing = 10.dp,
+                axisValuesOverrider = AxisValuesOverrider.fixed(minY = -1000f, maxY = 1000f)
             ),
             chartScrollSpec = rememberChartScrollSpec(
                 initialScroll = InitialScroll.End,
@@ -122,20 +129,30 @@ fun ChartView(
             startAxis = rememberStartAxis(
                 label = textComponent {
                     color = Color.White.toArgb()
-                    textSizeSp = 4f
-
+                    textSizeSp = 8f
                 },
             ),
             bottomAxis = rememberBottomAxis(
-
+                valueFormatter = TimeAxisValueFormatter(refTime ?: LocalDateTime.now()),
+//                itemPlacer = AxisItemPlacer.Horizontal.default(
+//                    spacing = 5,
+//                    offset = 0,
+//                ),
+                itemPlacer = ItemPlacerHorizontal(
+                    spacing = 5,
+                    offset = 0,
+                ),
+                label = textComponent {
+                    color = Color.White.toArgb()
+                    textSizeSp = 8f
+                },
             ),
-            horizontalLayout = HorizontalLayout.fullWidth(),
+            getXStep = { it -> 1000.0f},
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-            ,
 
-            isZoomEnabled = false,
+
         )
     }
 }

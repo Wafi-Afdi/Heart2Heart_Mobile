@@ -21,4 +21,6 @@ interface AuthRepository {
     fun getUserToken(): String?
 
     fun setUserToken(token: String)
+
+    fun logoutUser(): Unit
 }

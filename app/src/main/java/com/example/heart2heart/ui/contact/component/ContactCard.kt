@@ -41,6 +41,7 @@ fun ContactCard(
     name: String = "Unknown",
     phone: String = "+62 XXXX-XXX-XXXX",
     email: String = "placeholder@gmail.com",
+    canRemove: Boolean = true,
     onRemoveAccess: () -> Unit = { }
 ) {
     Row(
@@ -107,13 +108,15 @@ fun ContactCard(
                 fontSize = 14.sp,
             )
         }
-        IconButton(onClick = onRemoveAccess) {
-            Icon(
-                modifier = Modifier.size(24.dp),
-                painter = painterResource(R.drawable.baseline_group_remove_24),
-                contentDescription = "Remove Access",
-                tint = MaterialTheme.colorScheme.error
-            )
+        if (canRemove) {
+            IconButton(onClick = onRemoveAccess) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(R.drawable.baseline_group_remove_24),
+                    contentDescription = "Remove Access",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }

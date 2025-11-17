@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.heart2heart.ECGExtraction.data.dao.EcgSignalDao
+import com.example.heart2heart.ECGExtraction.model.ECGSignalDataModal
 import com.example.heart2heart.common.data.converter.Converters
 import com.example.heart2heart.common.data.dao.CookieDao
 import com.example.heart2heart.common.data.dao.ECGDeviceDao
@@ -18,7 +20,7 @@ import com.example.heart2heart.common.domain.model.MonitoringAccess
 import com.example.heart2heart.common.domain.model.User
 
 @Database(
-    entities = [User::class, ECGSignal::class, Cookie::class, MonitoringAccess::class, ECGDevice::class],
+    entities = [User::class, ECGSignal::class, Cookie::class, MonitoringAccess::class, ECGDevice::class, ECGSignalDataModal::class],
     version = 1,
     exportSchema = false
 )
@@ -29,5 +31,7 @@ abstract class AppDB: RoomDatabase() {
     abstract val monitoringAccessDao: MonitoringAccessDao
     abstract val ecgDeviceDao: ECGDeviceDao
     abstract val cookieDao: CookieDao
+
+    abstract val ecgSignalDataDao: EcgSignalDao
 
 }

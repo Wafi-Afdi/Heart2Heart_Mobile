@@ -63,7 +63,11 @@ import com.example.heart2heart.ui.navigation.Screen
 import com.example.heart2heart.ui.theme.ubuntuFamily
 import com.example.heart2heart.utils.AlignEndHorizontal
 import com.example.heart2heart.utils.ChooseModeScreenRoute
+import com.example.heart2heart.utils.MapScreenRoute
 import com.example.heart2heart.utils.PreviewWrapperWithScaffold
+import com.example.heart2heart.utils.ReportResultScreenRoute
+import com.example.heart2heart.utils.StatisticsRoute
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,17 +76,25 @@ fun HomeScreen(
     bluetoothViewModel: BluetoothViewModel,
     navController: NavHostController = rememberNavController(),
     homeViewModel: HomeViewModel,
+    appType: AppType
 ) {
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
 
     val bluetoothViewModelState by bluetoothViewModel.state.collectAsState()
     val userHomeState by homeViewModel.userHomeState.collectAsState()
+    val lastConnectionTimeBluetooth by bluetoothViewModel.lastConnectedBluetooth.collectAsState()
+
+    val heartBPM by homeViewModel.heartBPM.collectAsState()
 
     val sheetState = rememberModalBottomSheetState()
     var isSheetOpen by rememberSaveable {
         mutableStateOf(false)
     }
+
+    val locationState by homeViewModel.locationState.collectAsState()
+
+    val listOfReport by homeViewModel.listOfReports.collectAsState()
 
     val appContext = LocalContext.current.applicationContext
 
@@ -106,10 +118,17 @@ fun HomeScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        homeViewModel.startTracking()
+        homeViewModel.fetchReportList()
+    }
+
     Box(modifier = modifier.fillMaxSize()){
         if(bluetoothViewModelState.isConnecting) {
             Column(
-                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.6f)),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -154,7 +173,11 @@ fun HomeScreen(
                     },
                     disconnectDevice = {
                         bluetoothViewModel.disconnectFromDevice()
-                    }
+                    },
+                    lastConnectionTime = lastConnectionTimeBluetooth ?: LocalDateTime.now(),
+                    deviceName = bluetoothViewModelState.deviceConnectedTo,
+                    bpm = heartBPM,
+                    appType = appType,
                 )
                 Spacer(Modifier.height(8.dp))
                 Row(
@@ -164,12 +187,33 @@ fun HomeScreen(
                     ,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    LocationView(modifier = Modifier.weight(1f))
+                    LocationView(
+                        modifier = Modifier.weight(1f),
+                        onCardClick = {
+                            navController.navigate(
+                                MapScreenRoute
+                            )
+                        },
+                        long = locationState.longitude,
+                        lat = locationState.latitude,
+                        nation = locationState.country ?: "Unknown",
+                        provinceState = locationState.city ?: "Unknown"
+
+                    )
                     Spacer(Modifier.width(8.dp))
                     ContactView(modifier = Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(16.dp))
-                ReportView()
+                ReportView(
+                    onClickSeeMoreTop = {
+                        navController.navigate(StatisticsRoute)
+                    },
+                    onClickSeeMoreCard = {
+                        id ->
+                        navController.navigate(ReportResultScreenRoute(id))
+                    },
+                    listOfReport = listOfReport,
+                )
                 Spacer(Modifier.height(8.dp))
             }
         }

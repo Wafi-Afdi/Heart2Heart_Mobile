@@ -58,5 +58,11 @@ class AuthRepositoryHiltImpl @Inject constructor(
         editor.apply()
     }
 
+    override fun logoutUser() {
+        val editor = _preference.edit()
+        editor.remove("auth_token")
+        editor.apply()
+    }
+
 
 }

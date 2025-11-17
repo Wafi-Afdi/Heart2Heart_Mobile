@@ -9,10 +9,16 @@ object AuthRoute
 object LoginRoute
 
 @Serializable
+object AuthCheckRoute
+
+@Serializable
 object SignUpRoute
 
 @Serializable
 object ChooseModeScreenRoute
+@Serializable
+object ChooseWhoToObserveRoute
+
 
 @Serializable
 object MainScreenRoute
@@ -25,3 +31,9 @@ object StatisticsRoute
 object ContactsRoute
 @Serializable
 object SettingsRoute
+@Serializable
+object MapScreenRoute
+
+
+@Serializable
+data class ReportResultScreenRoute(val reportId: String)

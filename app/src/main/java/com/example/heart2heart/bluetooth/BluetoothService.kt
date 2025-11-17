@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import android.text.SpannableStringBuilder
 import android.util.Log
 import androidx.annotation.RequiresPermission
+import androidx.compose.runtime.State
 import com.example.heart2heart.ECGExtraction.domain.TextUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.time.LocalDateTime
 import java.util.UUID
 
 
@@ -41,7 +43,12 @@ class BluetoothServiceECG(
     private val context: Context
 ): BluetoothController
 {
+    private var isFoundDeviceReceiverRegistered = false
+    private var isBluetoothStateReceiverRegistered = false
 
+    private val _lastConnectedTime = MutableStateFlow<LocalDateTime?>(null)
+    val lastConnectedTime: StateFlow<LocalDateTime?>
+        get() = _lastConnectedTime.asStateFlow()
     private var currentServerSocket: BluetoothServerSocket? = null
     private var currentClientSocket: BluetoothSocket? = null
 
@@ -90,14 +97,23 @@ class BluetoothServiceECG(
 
 
     init {
-        context.registerReceiver(
-            bluetoothStateReceiver,
-            IntentFilter().apply {
-                addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)
-                addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
-                addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        try {
+            context.registerReceiver(
+                bluetoothStateReceiver,
+                IntentFilter().apply {
+                    addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)
+                    addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+                    addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+                }
+            )
+            isBluetoothStateReceiverRegistered = true // <-- SET FLAG
+        } catch (e: Exception) {
+            isBluetoothStateReceiverRegistered = false
+            Log.e("BluetoothServiceECG", "Failed to register bluetoothStateReceiver", e)
+            CoroutineScope(Dispatchers.IO).launch {
+                _errors.emit("Failed to initialize Bluetooth state receiver.")
             }
-        )
+        }
     }
 
     private val foundDeviceReceiver = FoundDeviceReceiver { device ->
@@ -113,10 +129,25 @@ class BluetoothServiceECG(
             return
         }
 
-        context.registerReceiver(
-            foundDeviceReceiver,
-            IntentFilter(BluetoothDevice.ACTION_FOUND)
-        )
+        if (isFoundDeviceReceiverRegistered) {
+            Log.w("BluetoothServiceECG", "FoundDeviceReceiver already registered.")
+            return
+        }
+
+        try {
+            context.registerReceiver(
+                foundDeviceReceiver,
+                IntentFilter(BluetoothDevice.ACTION_FOUND)
+            )
+            isFoundDeviceReceiverRegistered = true // <-- SET FLAG
+        } catch (e: Exception) {
+            isFoundDeviceReceiverRegistered = false
+            Log.e("BluetoothServiceECG", "Failed to register foundDeviceReceiver", e)
+            CoroutineScope(Dispatchers.IO).launch {
+                _errors.emit("Failed to start device discovery.")
+            }
+            return
+        }
         updatePairedDevices()
 
         bluetoothAdapter?.startDiscovery()
@@ -128,6 +159,15 @@ class BluetoothServiceECG(
         }
 
         bluetoothAdapter?.cancelDiscovery()
+
+        if (isFoundDeviceReceiverRegistered) {
+            try {
+                context.unregisterReceiver(foundDeviceReceiver)
+                isFoundDeviceReceiverRegistered = false // <-- CLEAR FLAG
+            } catch (e: IllegalArgumentException) {
+                Log.w("BluetoothServiceECG", "stopDiscovery: foundDeviceReceiver was already unregistered.")
+            }
+        }
     }
 
     override fun startBluetoothServer(): Flow<ConnectionResult> {
@@ -191,6 +231,7 @@ class BluetoothServiceECG(
                     socket.connect()
                     emit(ConnectionResult.ConnectionEstablished)
                     Log.i("BLUETOOTHECG", "Connection Established")
+                    _lastConnectedTime.update { LocalDateTime.now() }
                     BluetoothDataTransferService(socket).also {
                         dataTransferService = it
                         it
@@ -269,11 +310,29 @@ class BluetoothServiceECG(
         currentServerSocket?.close()
         currentClientSocket = null
         currentServerSocket = null
+        _lastConnectedTime.update { null }
     }
 
     override fun release() {
-        context.unregisterReceiver(foundDeviceReceiver)
-        context.unregisterReceiver(bluetoothStateReceiver)
+        stopDiscovery()
+        if (isBluetoothStateReceiverRegistered) {
+            try {
+                context.unregisterReceiver(bluetoothStateReceiver)
+                isBluetoothStateReceiverRegistered = false
+            } catch (e: IllegalArgumentException) {
+                Log.w("BluetoothServiceECG", "release: bluetoothStateReceiver already unregistered.")
+            }
+        }
+
+        // This check is a final safety net in case stopDiscovery() failed
+        if (isFoundDeviceReceiverRegistered) {
+            try {
+                context.unregisterReceiver(foundDeviceReceiver)
+                isFoundDeviceReceiverRegistered = false
+            } catch (e: IllegalArgumentException) {
+                Log.w("BluetoothServiceECG", "release: foundDeviceReceiver already unregistered.")
+            }
+        }
         closeConnection()
     }
 

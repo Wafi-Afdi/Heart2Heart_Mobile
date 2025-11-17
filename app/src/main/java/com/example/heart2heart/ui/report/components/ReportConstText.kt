@@ -1,0 +1,25 @@
+package com.example.heart2heart.ui.report.components
+
+const val TachycardiaDescription = """Tachycardia is simply defined as a heart rate that is too fast, typically exceeding 100 beats per minute at rest. This rapid pace can be a normal response to exercise, stress, or fever, but it can also be a sign of a more serious underlying heart condition or disease. When the rate is too high, the heart's chambers don't have enough time to properly fill with blood before contracting. Symptoms often include a racing heart feeling (palpitations), dizziness, shortness of breath, or chest discomfort. Treatment depends on the cause and may involve medication to slow the rate or procedures to correct the electrical problem.
+"""
+
+const val BradycardiaDescription = """Bradycardia describes a heart rate that is too slow, usually dropping below 60 beats per minute in a resting adult. Although a slow rate can be healthy and normal for well-conditioned athletes, for others it indicates a problem with the heart's natural pacemaker or electrical pathways. When the heart beats too slowly, it fails to pump enough oxygenated blood out to meet the body's metabolic demands. This lack of circulation causes common symptoms like extreme fatigue, lightheadedness, confusion, and sometimes fainting. If the slow rate is dangerous, treatment often involves placing a permanent pacemaker to electrically stimulate the heart.
+"""
+
+const val VentricularTachyDescription = """Ventricular Tachycardia (VT) is a dangerous, fast heart rhythm that originates directly in the main pumping chambers (ventricles). In VT, the ventricles beat so quickly that they don't have enough time to properly fill with blood before contracting, which severely reduces the heart's pumping efficiency. This condition is most often caused by scar tissue left behind after a previous heart attack or from severe structural heart disease. VT can cause symptoms ranging from severe palpitations and dizziness to sudden collapse, and if sustained, it can quickly degenerate into the deadly Vfib. Due to its high risk of causing cardiac arrest, it often requires treatment with an Implantable Cardioverter-Defibrillator (ICD).
+"""
+
+const val VFibDescription = """Ventricular Fibrillation (Vfib) is the most life-threatening of the common arrhythmias and is the rhythm most often responsible for Sudden Cardiac Arrest (SCA). In Vfib, the electrical activity in the main pumping chambers (ventricles) becomes completely chaotic, causing them to simply quiver like a bag of worms rather than contracting effectively. This chaotic quivering means the heart is not pumping any blood at all, resulting in the immediate loss of consciousness and absence of a detectable pulse. Survival depends entirely on immediate chest compressions (CPR) and the rapid delivery of an electrical shock (defibrillation) to reset the heart. Vfib must be corrected within minutes to prevent irreversible brain damage and death.
+"""
+
+const val AsystoleDescription = """Asystole is commonly referred to as a "flatline" because the electrical recording on an ECG monitor shows no activity. This rhythm represents the complete absence of electrical and mechanical activity in the heart, meaning there is no heartbeat, no pulse, and no blood flow whatsoever. Asystole often occurs as the final stage of a prolonged cardiac arrest after other rhythms have failed, or it can be caused by profound issues like severe lack of oxygen (hypoxia) or extreme acidity. Because there is no electrical activity to correct, defibrillation (shocking the heart) is ineffective for Asystole. The only treatment is high-quality CPR and the administration of epinephrine to try and stimulate any electrical activity.
+"""
+
+const val NormalRhytmDescription = """Normal Sinus Rhythm (NSR) is the heart's natural and healthy electrical pattern, where the heartbeat is both regular and organized. The electrical impulse that starts each beat originates in the Sinoatrial (SA) node, which is the heart's natural pacemaker located in the upper right chamber (atrium). This signal travels smoothly and sequentially through the atria and then to the ventricles, causing the chambers to contract in a perfectly timed, efficient sequence to pump blood. For an adult at rest, the rate is typically between 60 and 100 beats per minute (bpm). This consistent, orderly firing and contraction pattern ensures maximum blood flow throughout the body and is what is visualized as a steady, predictable wave pattern on an ECG monitor.
+"""
+
+const val IsProcessingDescription = """Classification is still being processed.
+"""
+
+const val AFibDescription = """Atrial fibrillation (AFib) is an abnormal heart rhythm where the upper chambers of the heart (the atria) beat rapidly and irregularly. This irregular rhythm disrupts the normal flow of blood through the heart. Because the blood doesn’t move efficiently, it can pool and form clots inside the atria. If a clot travels to the brain, it can cause a stroke, making AFib a serious condition. AFib can be occasional or persistent and often causes symptoms like palpitations, fatigue, or shortness of breath.
+"""

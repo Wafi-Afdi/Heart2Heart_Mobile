@@ -40,7 +40,14 @@ import com.example.heart2heart.ui.theme.ubuntuFamily
 import com.example.heart2heart.utils.Location_on
 
 @Composable
-fun LocationView(modifier: Modifier = Modifier, lat: Double = 0.0, long: Double = 0.0, provinceState: String = "Jakarta", nation: String = "Indonesia") {
+fun LocationView(
+        modifier: Modifier = Modifier,
+        lat: Double = 0.0,
+        long: Double = 0.0,
+        provinceState: String = "Jakarta",
+        nation: String = "Indonesia",
+        onCardClick: () -> Unit = {},
+) {
     val app = LocalContext.current
     val latituteAndLongitute = buildAnnotatedString {
         append("Lat: ")
@@ -65,6 +72,7 @@ fun LocationView(modifier: Modifier = Modifier, lat: Double = 0.0, long: Double 
             .padding(12.dp)
             .width(10.dp)
             .height(100.dp)
+            .clickable {onCardClick()}
         ,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center

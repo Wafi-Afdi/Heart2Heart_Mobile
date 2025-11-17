@@ -6,6 +6,7 @@ import com.example.heart2heart.auth.data.AppType
 import com.example.heart2heart.auth.data.UserProfile
 import com.example.heart2heart.auth.data.remote.AuthAPI
 import com.example.heart2heart.auth.data.remote.ProfileAPI
+import com.example.heart2heart.auth.domain.model.ListOfContactModelResponse
 import com.example.heart2heart.auth.repository.ProfileRepository
 import com.example.heart2heart.common.data.database.AppDB
 import com.example.heart2heart.common.data.toGeneralError
@@ -36,6 +37,19 @@ class ProfileRepositoryHiltImpl@Inject constructor(
     override val userData: StateFlow<UserProfile>
         get() = _userData.asStateFlow()
 
+    private val _ecgObserving = MutableStateFlow<UserProfile>(
+        UserProfile(
+            id = "",
+            name = "",
+            email = "",
+            phoneNumber = "",
+            role = "",
+        )
+    )
+
+    override val ECGObserving: StateFlow<UserProfile>
+        get() = _ecgObserving.asStateFlow()
+
     private val _appType = MutableStateFlow<AppType?>(null)
     override val appType: StateFlow<AppType?>
         get() = _appType.asStateFlow()
@@ -53,6 +67,18 @@ class ProfileRepositoryHiltImpl@Inject constructor(
         }
     }
 
+    override fun setECGObserving(userProfile: UserProfile) {
+        _ecgObserving.update {
+            it.copy(
+                id = userProfile.id,
+                email = userProfile.email,
+                phoneNumber = userProfile.phoneNumber,
+                name = userProfile.name,
+                role = userProfile.role
+            )
+        }
+    }
+
     override fun setAppType(appType: AppType) {
         _appType.update {
             appType
@@ -62,6 +88,14 @@ class ProfileRepositoryHiltImpl@Inject constructor(
     override suspend fun getUserProfile(): Either<NetworkError, UserProfile> {
         return Either.catch {
             profileAPI.getUserDataAPI()
+        }.mapLeft {
+            it.toGeneralError()
+        }
+    }
+
+    override suspend fun getListOfContact(): Either<NetworkError, ListOfContactModelResponse> {
+        return Either.catch {
+            profileAPI.getListOfContacts()
         }.mapLeft {
             it.toGeneralError()
         }

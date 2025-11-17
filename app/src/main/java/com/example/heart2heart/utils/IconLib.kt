@@ -807,10 +807,81 @@ val CrossCircled: ImageVector
         return _CrossCircled!!
     }
 
+val ExclamationCircle: ImageVector
+    get() {
+        if (_ExclamationCircle != null) return _ExclamationCircle!!
+
+        _ExclamationCircle = ImageVector.Builder(
+            name = "ExclamationCircle",
+            defaultWidth = 16.dp,
+            defaultHeight = 16.dp,
+            viewportWidth = 16f,
+            viewportHeight = 16f
+        ).apply {
+            path(
+                fill = SolidColor(Color.Black)
+            ) {
+                moveTo(8f, 15f)
+                arcTo(7f, 7f, 0f, true, true, 8f, 1f)
+                arcToRelative(7f, 7f, 0f, false, true, 0f, 14f)
+                moveToRelative(0f, 1f)
+                arcTo(8f, 8f, 0f, true, false, 8f, 0f)
+                arcToRelative(8f, 8f, 0f, false, false, 0f, 16f)
+            }
+            path(
+                fill = SolidColor(Color.Black)
+            ) {
+                moveTo(7.002f, 11f)
+                arcToRelative(1f, 1f, 0f, true, true, 2f, 0f)
+                arcToRelative(1f, 1f, 0f, false, true, -2f, 0f)
+                moveTo(7.1f, 4.995f)
+                arcToRelative(0.905f, 0.905f, 0f, true, true, 1.8f, 0f)
+                lineToRelative(-0.35f, 3.507f)
+                arcToRelative(0.552f, 0.552f, 0f, false, true, -1.1f, 0f)
+                close()
+            }
+        }.build()
+
+        return _ExclamationCircle!!
+    }
+
+val Arrow_back: ImageVector
+    get() {
+        if (_Arrow_back != null) return _Arrow_back!!
+
+        _Arrow_back = ImageVector.Builder(
+            name = "Arrow_back",
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 960f,
+            viewportHeight = 960f
+        ).apply {
+            path(
+                fill = SolidColor(Color(0xFF000000))
+            ) {
+                moveToRelative(313f, -440f)
+                lineToRelative(224f, 224f)
+                lineToRelative(-57f, 56f)
+                lineToRelative(-320f, -320f)
+                lineToRelative(320f, -320f)
+                lineToRelative(57f, 56f)
+                lineToRelative(-224f, 224f)
+                horizontalLineToRelative(487f)
+                verticalLineToRelative(80f)
+                close()
+            }
+        }.build()
+
+        return _Arrow_back!!
+    }
 
 
 
 
+
+
+private var _Arrow_back: ImageVector? = null
+private var _ExclamationCircle: ImageVector? = null
 private var _Phone_android: ImageVector? = null
 private var _PersonCircle: ImageVector? = null
 private var _CrossCircled: ImageVector? = null

@@ -41,6 +41,8 @@ class BluetoothViewModel @Inject constructor(
 
     private var deviceConnectionJob: Job? = null
 
+    val lastConnectedBluetooth = bluetoothController.lastConnectedTime
+
 
     init {
         bluetoothController.isConnected.onEach {
@@ -68,7 +70,7 @@ class BluetoothViewModel @Inject constructor(
 
     fun connectToDevice(device: BluetoothDataModel) {
         _state.update {
-            it.copy(isConnecting = true)
+            it.copy(isConnecting = true, deviceConnectedTo = device.name ?: "Unknown Device")
         }
         deviceConnectionJob = bluetoothController
             .connectToDevice(device)
@@ -81,7 +83,8 @@ class BluetoothViewModel @Inject constructor(
         _state.update {
             it.copy(
                 isConnecting = false,
-                isConnected = false
+                isConnected = false,
+                deviceConnectedTo = "No Connection",
             )
         }
         Intent(app, ECGForegroundService::class.java).also {

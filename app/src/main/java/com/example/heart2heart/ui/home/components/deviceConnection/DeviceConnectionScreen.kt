@@ -39,6 +39,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.heart2heart.R
+import com.example.heart2heart.auth.data.AppType
 import com.example.heart2heart.ui.theme.poppinsFamily
 import com.example.heart2heart.ui.theme.ubuntuFamily
 import com.example.heart2heart.utils.CpuChip
@@ -54,6 +55,9 @@ fun DeviceInfoView(
     lastConnectionTime: LocalDateTime = LocalDateTime.of(2025, 10, 23, 15, 45, 30),
     onDeviceButtonClick: () -> Unit = {},
     disconnectDevice: () -> Unit = {},
+    deviceName: String = "Unknown Device",
+    bpm: Number = 0,
+    appType: AppType,
 ) {
 
     val now = LocalDateTime.now()
@@ -101,7 +105,7 @@ fun DeviceInfoView(
             horizontalAlignment = Alignment.Start // items-start
         ) {
             Text(
-                text = "STM32F4CE",
+                text = deviceName,
                 style = LocalTextStyle.current.copy(
                     lineHeight = 16.sp // adjust as needed, try 16–20.sp
                 ),
@@ -121,7 +125,7 @@ fun DeviceInfoView(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        text = "181 BPM",
+                        text = "${bpm} BPM",
                         style = LocalTextStyle.current.copy(
                             lineHeight = 16.sp
                         ),
@@ -197,7 +201,7 @@ fun DeviceInfoView(
                 )
             } else {
                 Text(
-                    text = "Not connected to ECG",
+                    text = if(appType == AppType.AMBULATORY) "Not connected to ECG" else "Not Connected to user",
                     style = LocalTextStyle.current.copy(
                         lineHeight = 16.sp // adjust as needed, try 16–20.sp
                     ),

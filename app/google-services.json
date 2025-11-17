@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "753564590921",
+    "project_id": "heart2heart-ef350",
+    "storage_bucket": "heart2heart-ef350.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:753564590921:android:61846e2c66451d1e08b098",
+        "android_client_info": {
+          "package_name": "com.example.heart2heart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxgKl9X5U-cuB7fN_6BaTNO9zheJ-fkp4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

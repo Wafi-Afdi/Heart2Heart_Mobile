@@ -47,6 +47,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.heart2heart.R
+import com.example.heart2heart.auth.data.AppType
 import com.example.heart2heart.utils.ContactsRoute
 import com.example.heart2heart.utils.HomeScreenRoute
 import com.example.heart2heart.utils.MainScreenRoute
@@ -60,6 +61,8 @@ private fun RowScope.BottomBarItem(
     onNavigateTo: (Screen) -> Unit,
     isActive: Boolean = false,
     NotFAB: Boolean = true,
+    appType: AppType = AppType.AMBULATORY,
+    isConnectionActive: Boolean = false,
 ) {
 
     Box(
@@ -79,7 +82,14 @@ private fun RowScope.BottomBarItem(
             .weight(1f)
 
             .background(
-                if (!NotFAB) {
+                if(!NotFAB && appType == AppType.OBSERVER) {
+                    if (isConnectionActive) {
+                        colorResource(R.color.success)
+                    } else {
+                        colorResource(R.color.neutral_700)
+                    }
+                }
+                else if (!NotFAB) {
                     MaterialTheme.colorScheme.primary
                 }else {
                     Color.Transparent
@@ -92,10 +102,19 @@ private fun RowScope.BottomBarItem(
             content = {
                 Icon(
                     painter = painterResource(
-                        id = screen.selectedIcon
+                        id = (if(!NotFAB && appType == AppType.OBSERVER && screen.altIcon != null)
+                                screen.altIcon
+                            else screen.selectedIcon
+                                )
                     ),
                     contentDescription = null,
-                    tint = if(isActive && NotFAB) {
+                    tint = if (appType == AppType.OBSERVER && !NotFAB) {
+                        if (isConnectionActive) {
+                            colorResource(R.color.text_dark)
+                        } else {
+                            colorResource(R.color.neutral_900)
+                        }
+                    } else if(isActive && NotFAB) {
                         MaterialTheme.colorScheme.primary
                     } else if (!NotFAB) {
                         MaterialTheme.colorScheme.onPrimary
@@ -118,7 +137,10 @@ fun BottomNavigationScreen(
     screens: List<Screen>,
     onNavigateTo: (Screen) -> Unit,
     onEmergencyButton: (Screen) -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    appType: AppType = AppType.AMBULATORY,
+    onStartListeningButton: () -> Unit = { },
+    isConnected: Boolean = false,
 ) {
     val backgroundShape = remember { menuBarShape() }
 
@@ -132,6 +154,7 @@ fun BottomNavigationScreen(
     Box(
         modifier = Modifier
         .navigationBarsPadding()
+        .background(Color.Transparent)
 
     ) {
         Box(
@@ -157,7 +180,7 @@ fun BottomNavigationScreen(
                 Row(
                     modifier = Modifier.size(64.dp)
                 ) {
-                    BottomBarItem(screens[2], onEmergencyButton, false, NotFAB = false)
+                    BottomBarItem(screens[2], onEmergencyButton, false, NotFAB = false, appType = appType, isConnectionActive = isConnected)
                 }
             }
             Spacer(modifier = Modifier.height(30.dp))
@@ -205,6 +228,7 @@ private fun Preview() {
                     route = "SOS",
                     icon = R.drawable.sos_ic,
                     selectedIcon = R.drawable.sos_ic,
+                    altIcon = R.drawable.wifi_off,
                 ),
                 Screen(
                     route = "profile",

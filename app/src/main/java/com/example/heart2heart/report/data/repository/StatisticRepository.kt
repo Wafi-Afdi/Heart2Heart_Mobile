@@ -1,9 +1,15 @@
 package com.example.heart2heart.report.data.repository
 
+import android.content.ContentValues
+import android.content.Context
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
 import com.example.heart2heart.ECGExtraction.data.ReportType
 import com.example.heart2heart.ECGExtraction.data.dto.BpmDataDTO
+import com.example.heart2heart.ECGExtraction.data.dto.EcgDataDTO
 import com.example.heart2heart.ECGExtraction.data.remote.ECGExtractionAPI
 import com.example.heart2heart.ECGExtraction.data.repository.BpmRepositoryImpl
 import com.example.heart2heart.ECGExtraction.repository.ECGRepository
@@ -14,6 +20,8 @@ import com.example.heart2heart.auth.repository.ProfileRepository
 import com.example.heart2heart.common.domain.model.ApiError
 import com.example.heart2heart.report.domain.model.AverageBPM
 import com.example.heart2heart.report.domain.model.ReportData
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,12 +30,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
 
 class StatisticRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val reportRepository: ReportRepository,
     private val profileRepo: ProfileRepository,
     private val ecgRepository: ECGRepository,
@@ -118,6 +129,80 @@ class StatisticRepository @Inject constructor(
         )
     }
 
+    suspend fun exportECG(start: LocalDateTime, end: LocalDateTime) {
+        var userId: UUID
+        if (profileRepo.appType.value == AppType.AMBULATORY) {
+            userId = UUID.fromString(profileRepo.userData.value.id)
+        } else {
+            userId = UUID.fromString(profileRepo.ECGObserving.value.id)
+        }
+        ecgRepository.getDataRange(
+            start,
+            end,
+            userId
+        ).fold(
+            ifLeft = {
+                    networkError ->
+                val errorMessage = when (networkError.error) {
+                    ApiError.NetworkError -> "No internet connection. Please try again."
+                    ApiError.Unauthorized -> "Invalid data."
+                    ApiError.BadRequest -> "There was an issue with your request."
+                    ApiError.NotFound -> "User not found."
+                    ApiError.ServerError -> "Server error. Please try again later."
+                    else -> "An unknown error occurred."
+                }
+                _toastMessage.emit(errorMessage)
+            },
+            ifRight = {
+                res ->
+                if (res.ecgData.isEmpty()) {
+                    _toastMessage.emit("No data found for the selected range.")
+                    return@fold
+                }
+                withContext(Dispatchers.IO) {
+                    try {
+                        val csvContent = createCsvString(res.ecgData)
+
+                        saveToDownloads(
+                            context = context,
+                            csvContent = csvContent,
+                            userId = res.userId,
+                            start = start,
+                            end = end
+                        )
+
+                        _toastMessage.emit("Successfully saved to Downloads folder.")
+
+                    } catch (e: Exception) {
+                        _toastMessage.emit("Failed to save file: ${e.message}")
+                    }
+                }
+
+            }
+        )
+    }
+
+    suspend fun generateDiagnosis(timestamp: LocalDateTime) {
+        reportRepository.generateDiagnosis(timestamp).fold(
+            ifLeft = {
+                    networkError ->
+                val errorMessage = when (networkError.error) {
+                    ApiError.NetworkError -> "No internet connection. Please try again."
+                    ApiError.Unauthorized -> "Invalid data."
+                    ApiError.BadRequest -> "There was an issue with your request."
+                    ApiError.NotFound -> "User not found."
+                    ApiError.ServerError -> "Server error. Please try again later."
+                    else -> "An unknown error occurred."
+                }
+                _toastMessage.emit(errorMessage)
+            },
+            ifRight = {
+                    res ->
+                _toastMessage.emit("Diagnosis requested, please wait till it is done")
+            }
+        )
+    }
+
     private fun stringToReportType(input: String): ReportType {
         if (input == "SOS") {
             return ReportType.SOS;
@@ -185,6 +270,63 @@ class StatisticRepository @Inject constructor(
             val a = sortedBpms[middleIndex - 1]
             val b = sortedBpms[middleIndex]
             (a + b) / 2f
+        }
+    }
+
+    private fun createCsvString(data: List<EcgDataDTO>): String {
+        val stringBuilder = StringBuilder()
+
+        // 1. Add Header Row
+        stringBuilder.appendLine("signal,rp,flat,ts")
+
+        // 2. Add Data Rows
+        data.forEach { dto ->
+            // Using quotes around the timestamp is good practice in case it contains commas
+            stringBuilder.appendLine("${dto.signal},${dto.rp},${dto.flat},\"${dto.ts}\"")
+        }
+
+        return stringBuilder.toString()
+    }
+
+    private fun saveToDownloads(
+        context: Context,
+        csvContent: String,
+        userId: UUID,
+        start: LocalDateTime,
+        end: LocalDateTime
+    ) {
+        // 1. Define file details
+        val formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm")
+        val startStr = start.format(formatter)
+        val endStr = end.format(formatter)
+        val fileName = "ecg_data_${userId}_${startStr}_to_${endStr}.csv"
+
+        val resolver = context.contentResolver
+
+        // 2. Set file metadata
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            put(MediaStore.MediaColumns.MIME_TYPE, "text/csv")
+            // This targets the "Downloads" folder
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+        }
+
+        var uri: Uri? = null
+
+        try {
+            uri = resolver.insert(MediaStore.Files.getContentUri("external"), contentValues)
+                ?: throw IOException("Failed to create new MediaStore entry.")
+
+            // 4. Open an OutputStream to the new file's Uri
+            resolver.openOutputStream(uri)?.use { outputStream ->
+                // 5. Write the CSV content
+                outputStream.write(csvContent.toByteArray())
+            }
+        } catch (e: Exception) {
+            uri?.let {
+                resolver.delete(it, null, null)
+            }
+            throw IOException("Failed to save file: ${e.message}", e)
         }
     }
 }

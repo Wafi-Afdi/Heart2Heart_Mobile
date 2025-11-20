@@ -25,6 +25,8 @@ import com.example.heart2heart.contacts.data.remote.ContactAPI
 import com.example.heart2heart.contacts.data.repository.ContactRepository
 import com.example.heart2heart.home.domain.LiveLocationService
 import com.example.heart2heart.report.data.repository.StatisticRepository
+import com.example.heart2heart.websocket.data.repository.WebsocketImpl
+import com.example.heart2heart.websocket.repository.WebSocketRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -65,16 +67,22 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideLocationService(@ApplicationContext context: Context): LiveLocationService {
-        return LiveLocationService(context)
+    fun provideLocationService(@ApplicationContext context: Context, profileRepository: ProfileRepository,webSocketRepository: WebSocketRepository): LiveLocationService {
+        return LiveLocationService(context, profileRepository, webSocketRepository)
     }
 
 
 
     @Singleton
     @Provides
-    fun provideECGExtractionService(ecgRepository: ECGRepository, bpmRepositoryImpl: BpmRepositoryImpl, profileRepository: ProfileRepository, emergencyBroadcastService: EmergencyBroadcastService): ECGDataProcessingService {
-        return ECGDataProcessingService(ecgRepository, bpmRepositoryImpl, profileRepository, emergencyBroadcastService)
+    fun provideECGExtractionService(ecgRepository: ECGRepository,
+                                    bpmRepositoryImpl: BpmRepositoryImpl,
+                                    profileRepository: ProfileRepository,
+                                    emergencyBroadcastService: EmergencyBroadcastService,
+                                    bluetoothServiceECG: BluetoothServiceECG,
+                                    webSocketRepository: WebSocketRepository
+    ): ECGDataProcessingService {
+        return ECGDataProcessingService(ecgRepository, bpmRepositoryImpl, profileRepository, emergencyBroadcastService, bluetoothServiceECG, webSocketRepository)
     }
 
     @Provides
@@ -191,14 +199,26 @@ object AppModule {
     fun provideStatisticRepository(reportRepository: ReportRepository,
                                    profileRepository: ProfileRepository,
                                    ecgRepository: ECGRepository,
-                                   bpmRepositoryImpl: BpmRepositoryImpl
+                                   bpmRepositoryImpl: BpmRepositoryImpl,
+                                   @ApplicationContext context: Context
     ): StatisticRepository {
         return StatisticRepository(
+            context,
             reportRepository,
             profileRepository,
             ecgRepository,
             bpmRepositoryImpl
         )
+    }
+
+    @Singleton
+    @Provides
+    fun provideWebSocketRepository(
+        authRepository: AuthRepository,
+        profileRepository: ProfileRepository,
+        bluetoothServiceECG: BluetoothServiceECG,
+    ): WebSocketRepository {
+        return WebsocketImpl(profileRepository, authRepository, bluetoothServiceECG)
     }
 
 }

@@ -11,8 +11,8 @@ data class LocationData(
     val bearing: Float? = 0.0f,
     val provider: String = "",
     val time: String = "",
-    var city: String? = "Slsadw",
-    var country: String? = "Indonesia",
+    var city: String? = "-",
+    var country: String? = "-",
 ) {
     companion object {
         fun fromLocation(location: Location): LocationData {

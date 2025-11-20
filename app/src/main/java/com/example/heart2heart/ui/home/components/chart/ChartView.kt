@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.heart2heart.ECGExtraction.presentation.ECGChartViewModel
 import com.example.heart2heart.R
 import com.example.heart2heart.ui.theme.ubuntuFamily
@@ -62,8 +63,8 @@ fun ChartView(
     val dataPoints = listOf(4f, 12f, 8f, 16f, 11f, 14f, 10f,20f,3f,4f,5f,6f,5f,1f,2f)
 
     val ecgViewModel = hiltViewModel<ECGChartViewModel>()
-    val pointsState by ecgViewModel.points.collectAsState()
-    val refTime by ecgViewModel.referenceTime.collectAsState()
+    val pointsState by ecgViewModel.points.collectAsStateWithLifecycle()
+    val refTime by ecgViewModel.referenceTime().collectAsState()
 
 
     val chartEntryModel = remember(pointsState) {
@@ -84,6 +85,7 @@ fun ChartView(
             )
         }
     }
+
 
     Column(
         modifier = Modifier
@@ -113,7 +115,7 @@ fun ChartView(
                     )
                 ),
                 spacing = 10.dp,
-                axisValuesOverrider = AxisValuesOverrider.fixed(minY = -1000f, maxY = 1000f)
+                axisValuesOverrider = AxisValuesOverrider.fixed(minY = -1000f, maxY = 1200f)
             ),
             chartScrollSpec = rememberChartScrollSpec(
                 initialScroll = InitialScroll.End,

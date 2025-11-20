@@ -33,11 +33,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.heart2heart.R
 import com.example.heart2heart.ui.theme.ubuntuFamily
+import com.example.heart2heart.websocket.data.dto.UserWebSocketDTO
 
-@Composable
-fun ContactView(modifier: Modifier) {
+    @Composable
+    fun ContactView(
+        modifier: Modifier,
+        totalPerson: Int = 0,
+        userConnected: List<UserWebSocketDTO> = emptyList()
+    ) {
 
-    Column (
+        val connectedNamesString: String = userConnected.joinToString(separator = ", ") { it.name }
+
+        Column (
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surface)
@@ -49,7 +56,7 @@ fun ContactView(modifier: Modifier) {
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = "0 People are monitoring right now",
+            text = "$totalPerson People are monitoring right now",
             style = LocalTextStyle.current.copy(
                 lineHeight = 16.sp // adjust as needed, try 16–20.sp
             ),
@@ -61,24 +68,12 @@ fun ContactView(modifier: Modifier) {
 
         Column {
             Text(
-                text = "Wafi Afdi Alfad dwadklj, dwakjd",
+                text = connectedNamesString,
                 style = LocalTextStyle.current.copy(
                     lineHeight = 13.sp // adjust as needed, try 16–20.sp
                 ),
                 fontFamily = ubuntuFamily,
-                maxLines = 1,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = "+8 More",
-                style = LocalTextStyle.current.copy(
-                    lineHeight = 13.sp // adjust as needed, try 16–20.sp
-                ),
-                fontFamily = ubuntuFamily,
-                maxLines = 1,
+                maxLines = 2,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,

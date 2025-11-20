@@ -1,6 +1,7 @@
 package com.example.heart2heart.report.presentation
 
 import android.annotation.SuppressLint
+import com.example.heart2heart.report.domain.model.AverageBPM
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.chart.values.ChartValues
@@ -9,7 +10,8 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 class FormatterDateAxisX(
-    private val refTime: LocalDateTime
+    private val refTime: LocalDateTime,
+    private val listOfBPM: List<AverageBPM>
 ) : AxisValueFormatter<AxisPosition.Horizontal.Bottom> {
     @SuppressLint("WeekBasedYear")
     private val timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -19,11 +21,12 @@ class FormatterDateAxisX(
         chartValues: ChartValues
     ): CharSequence {
         val epochMillis = value.toLong()
+        val index = value.toInt()
 //        val instant = Instant.ofEpochMilli(epochMillis)
 //
 //        val dateTime = LocalDateTime.ofInstant(instant, ZoneOffset.UTC)
         val actualDateTime = refTime.plus(epochMillis, ChronoUnit.MILLIS)
-        return actualDateTime.format(timeFormatter)
+        return listOfBPM[index].timestamp.format(timeFormatter)
     }
 
 }

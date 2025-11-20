@@ -64,6 +64,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import com.example.heart2heart.ECGExtraction.domain.ObserverForegroundService
 import com.example.heart2heart.EmergencyBroadcast.presentation.EmergencyBroadcastViewModel
 import com.example.heart2heart.EmergencyBroadcast.presentation.ReportViewModel
 import com.example.heart2heart.auth.data.AppType
@@ -114,6 +115,7 @@ import com.example.heart2heart.utils.askToEnableLocation
 import com.example.heart2heart.utils.hasBackgroundLocationPermission
 import com.example.heart2heart.utils.hasLocationPermission
 import com.example.heart2heart.utils.isLocationEnabled
+import com.example.heart2heart.websocket.presentation.TestWSViewModel
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.jar.Manifest
@@ -260,6 +262,7 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val navViewModel = hiltViewModel<NavViewModel>()
                 val appType by navViewModel.appType.collectAsState()
+                val isConnectedWebSocket by navViewModel.isConnectedWebSocket.collectAsState()
 
                 /* Bluetooth */
                 val bluetoothViewModel = hiltViewModel<BluetoothViewModel>()
@@ -324,10 +327,10 @@ class MainActivity : ComponentActivity() {
                                 onNavigateTo = { navController.navigate(it.route) },
                                 onEmergencyButton = {
                                     if (appType == AppType.OBSERVER) {
-                                        if (isConnectionActive) {
-                                            isConnectionActive = false
+                                        if (isConnectedWebSocket) {
+                                            navViewModel.stopObserverService()
                                         } else {
-                                            isConnectionActive = true
+                                            navViewModel.startObserverService()
                                         }
                                     } else {
                                         emergencyViewModel.startWarningTimer()
@@ -336,7 +339,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 appType = appType ?: AppType.AMBULATORY,
                                 onStartListeningButton = { },
-                                isConnected = isConnectionActive,
+                                isConnected = isConnectedWebSocket,
                             )
                         }
                     }
@@ -485,6 +488,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable<SettingsRoute> {
+                                val testWSViewModel = hiltViewModel<TestWSViewModel>()
                                 SettingScreen(
                                     modifier = Modifier.padding(innerPadding),
                                     onLogoutClicked = {
@@ -495,7 +499,12 @@ class MainActivity : ComponentActivity() {
                                                 inclusive = true
                                             }
                                         }
-                                    }
+                                    },
+                                    onConnectCLicked = {
+                                        testWSViewModel.connect()
+                                    },
+                                    onSendMessage = testWSViewModel::sendMessage,
+                                    onDisconnect = testWSViewModel::disconnect
                                 )
                             }
 

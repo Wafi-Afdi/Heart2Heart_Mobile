@@ -1,6 +1,7 @@
 package com.example.heart2heart.home.presentation
 
 import androidx.lifecycle.ViewModel
+import com.example.heart2heart.auth.data.AppType
 import com.example.heart2heart.auth.repository.ProfileRepository
 import com.example.heart2heart.home.domain.LiveLocationService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +14,9 @@ class LocationViewModel @Inject constructor(
 ): ViewModel() {
 
     init {
-        startTracking()
+        if (profileRepo.appType.value == AppType.AMBULATORY) {
+            startTracking()
+        }
     }
     val locationState = liveLocationService.locationState
 

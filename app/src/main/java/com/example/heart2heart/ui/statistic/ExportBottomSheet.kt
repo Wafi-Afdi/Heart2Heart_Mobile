@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +40,9 @@ import com.example.heart2heart.R
 import com.example.heart2heart.ui.theme.poppinsFamily
 import com.example.heart2heart.ui.theme.ubuntuFamily
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
@@ -53,7 +58,8 @@ private enum class PickerStep {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExportBottomSheet(
-    onSubmit: () -> Unit = { }
+    onSubmit: (start: LocalDateTime, end: LocalDateTime) -> Unit = {st, end -> },
+    isLoading: Boolean = false,
 ) {
     val isDark = isSystemInDarkTheme()
 
@@ -68,6 +74,9 @@ fun ExportBottomSheet(
 
     var selectedStartMillis by remember { mutableStateOf<Long?>(null) }
     var selectedEndMillis by remember { mutableStateOf<Long?>(null) }
+
+    var selectedStartDateTime by remember { mutableStateOf<LocalDateTime?>(null) }
+    var selectedEndDateTime by remember { mutableStateOf<LocalDateTime?>(null) }
 
     var selectedDateRangeText by remember { mutableStateOf<String?>(null) }
 
@@ -119,11 +128,15 @@ fun ExportBottomSheet(
         }
         Spacer(Modifier.height(8.dp))
         Button(
-            onClick = { onSubmit()},
+            onClick = {
+                if (selectedStartDateTime != null && selectedEndDateTime != null) {
+                    onSubmit(selectedStartDateTime!!, selectedEndDateTime!!)
+                }
+                      },
             modifier = Modifier
                 .fillMaxWidth()
             ,
-            enabled = true,
+            enabled = !isLoading,
             shape = RoundedCornerShape(8.dp),
             colors = ButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -133,19 +146,20 @@ fun ExportBottomSheet(
             )
         ) {
             // Button content
-//            if (uiState.isLoading) {
-//                CircularProgressIndicator(
-//                    modifier = Modifier.size(20.dp),
-//                    color = MaterialTheme.colorScheme.onPrimary,
-//                    strokeWidth = 2.dp
-//                )
-//            }
-            Text(
-                text = "Download",
-                modifier = Modifier.padding(vertical = 4.dp),
-                fontFamily = ubuntuFamily,
-                fontSize = 16.sp,
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = "Download",
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    fontFamily = ubuntuFamily,
+                    fontSize = 16.sp,
+                )
+            }
         }
 
         if (currentStep == PickerStep.DATE_RANGE_SELECTION) {
@@ -200,6 +214,19 @@ fun ExportBottomSheet(
                         onClick = {
                             // All components selected. Combine and finish.
                             currentStep = PickerStep.NONE
+
+                            selectedStartDateTime = toLocalDateTime(
+                                dateRangeState.selectedStartDateMillis,
+                                startTimeState.hour,
+                                startTimeState.minute
+                            )
+
+                            selectedEndDateTime = toLocalDateTime(
+                                dateRangeState.selectedEndDateMillis,
+                                endTimeState.hour,
+                                endTimeState.minute
+                            )
+
                             selectedDateRangeText = formatDateTimeRange(
                                 dateRangeState.selectedStartDateMillis,
                                 dateRangeState.selectedEndDateMillis,
@@ -255,4 +282,25 @@ private fun formatDateTimeRange(
     val formattedEnd = formatter.format(endCalendar.time)
 
     return "$formattedStart - $formattedEnd"
+}
+
+private fun toLocalDateTime(
+    dateMillis: Long?,
+    hour: Int,
+    minute: Int
+): LocalDateTime? {
+    if (dateMillis == null) return null
+
+    // 1. Convert Long milliseconds to Instant
+    val instant = Instant.ofEpochMilli(dateMillis)
+
+    // 2. Convert Instant to LocalDateTime at the system's default time zone
+    val localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+    // 3. Set the hour and minute from the TimePicker
+    return localDateTime
+        .withHour(hour)
+        .withMinute(minute)
+        .withSecond(0)
+        .withNano(0)
 }

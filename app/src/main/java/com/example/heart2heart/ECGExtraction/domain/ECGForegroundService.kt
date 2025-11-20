@@ -22,6 +22,7 @@ import com.example.heart2heart.EmergencyBroadcast.domain.data.EmergencyEvent
 import com.example.heart2heart.R
 import com.example.heart2heart.bluetooth.BluetoothServiceECG
 import com.example.heart2heart.home.domain.LiveLocationService
+import com.example.heart2heart.websocket.repository.WebSocketRepository
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -42,6 +43,9 @@ class ECGForegroundService: Service() {
 
     @Inject
     lateinit var ecgDataProcessingService: ECGDataProcessingService
+
+    @Inject
+    lateinit var websocketAmbulatory: WebSocketRepository
 
     @Inject
     lateinit var ecgEmergencyBroadcastService: EmergencyBroadcastService
@@ -80,13 +84,15 @@ class ECGForegroundService: Service() {
                 disconnect()
             }
         }
+
+        websocketAmbulatory.connect()
         val notification = createNotification()
 
         bluetoothController.incomingSamples
             .onEach { sample ->
                 //Log.w("ECGForegroundService", "ECG sample: $sample")
                 // Optionally store to DB or send to server here
-                // ecgDataProcessingService.parseData(sample, LocalDateTime.now())
+                ecgDataProcessingService.parseData(sample, LocalDateTime.now())
             }
             .launchIn(serviceScope)
 
@@ -96,6 +102,7 @@ class ECGForegroundService: Service() {
                     // Update notification if needed
                     val newNotification = createNotification()
                     notificationManager.notify(NOTIFICATION_ID, newNotification)
+                    websocketAmbulatory.publishBluetoothIsActive()
                 } else {
                     // Connection lost, stop the service
                     stopSelf()
@@ -138,6 +145,8 @@ class ECGForegroundService: Service() {
         }
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+
+        websocketAmbulatory.disconnect()
     }
 
     private fun createNotification(): Notification {
@@ -147,7 +156,7 @@ class ECGForegroundService: Service() {
             .setContentTitle("Heart2Heart")
             .setContentText("ECG sedang jalan")
             .addAction(
-                R.drawable.setting_ic,
+                R.drawable.close_x,
                 "Disconnect",
                 disconnectPendingIntent
             )
@@ -183,6 +192,7 @@ class ECGForegroundService: Service() {
         super.onDestroy()
         bluetoothController.closeConnection()
         serviceJob.cancel()
+        websocketAmbulatory.disconnect()
         if (::wakeLock.isInitialized && wakeLock.isHeld) {
             wakeLock.release()
             Log.d("ECGForegroundService", "WakeLock released in onDestroy.")

@@ -23,6 +23,12 @@ if (localPropertiesFile.exists()) {
 
 val beApiUrl = localProperties.getProperty("Heart2Heart.BE_API_LOCAL") // Fallback to local.properties
     ?: "http:127.0.0.1"
+
+val wsApiUrl = localProperties.getProperty("Heart2Heart.WS_API") // Fallback to local.properties
+    ?: "http:127.0.0.1"
+
+val baseDomain = localProperties.getProperty("Heart2Heart.DOMAIN_BE") // Fallback to local.properties
+    ?: "http:127.0.0.1"
 val mapsApiKey = localProperties.getProperty("MAPS_API_KEY") // Fallback to local.properties
     ?: "http:127.0.0.1"
 
@@ -37,6 +43,8 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField("String", "BE_API_LOCAL", "\"$beApiUrl\"")
+        buildConfigField("String", "WS_API", "\"$wsApiUrl\"")
+        buildConfigField("String", "DOMAIN_BE", "\"$baseDomain\"")
         manifestPlaceholders["mapsApiKey"] = mapsApiKey
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

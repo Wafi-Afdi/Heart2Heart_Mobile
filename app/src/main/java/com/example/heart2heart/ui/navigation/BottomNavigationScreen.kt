@@ -102,8 +102,11 @@ private fun RowScope.BottomBarItem(
             content = {
                 Icon(
                     painter = painterResource(
-                        id = (if(!NotFAB && appType == AppType.OBSERVER && screen.altIcon != null)
-                                screen.altIcon
+                        id = (if(!NotFAB && appType == AppType.OBSERVER && screen.altIcon != null) {
+                            if (isConnectionActive) R.drawable.wifi_on
+                                else screen.altIcon
+                        }
+
                             else screen.selectedIcon
                                 )
                     ),

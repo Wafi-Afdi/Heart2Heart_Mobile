@@ -84,6 +84,17 @@ fun HomeScreen(
     val bluetoothViewModelState by bluetoothViewModel.state.collectAsState()
     val userHomeState by homeViewModel.userHomeState.collectAsState()
     val lastConnectionTimeBluetooth by bluetoothViewModel.lastConnectedBluetooth.collectAsState()
+    val isObserverBluetoothOn by homeViewModel.isObserverBluetoothConnected.collectAsState()
+
+    val connectedUser by homeViewModel.totalPersonWatching.collectAsState()
+
+    val isDeviceConnected = (
+            if(appType == AppType.AMBULATORY) {
+                bluetoothViewModelState.isConnected
+            } else {
+                isObserverBluetoothOn
+            }
+            )
 
     val heartBPM by homeViewModel.heartBPM.collectAsState()
 
@@ -153,7 +164,7 @@ fun HomeScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 ChartView(
-                    isConnected = bluetoothViewModelState.isConnected,
+                    isConnected = isDeviceConnected,
                     userBeingViewed = (
                         if (userHomeState.appType == AppType.AMBULATORY) {
                             userHomeState.name
@@ -166,10 +177,12 @@ fun HomeScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 DeviceInfoView(
-                    isConnected = bluetoothViewModelState.isConnected,
+                    isConnected = isDeviceConnected,
                     onDeviceButtonClick = {
-                        isSheetOpen = true
-                        bluetoothViewModel.startScan()
+                        if (appType == AppType.AMBULATORY) {
+                            isSheetOpen = true
+                            bluetoothViewModel.startScan()
+                        }
                     },
                     disconnectDevice = {
                         bluetoothViewModel.disconnectFromDevice()
@@ -201,7 +214,11 @@ fun HomeScreen(
 
                     )
                     Spacer(Modifier.width(8.dp))
-                    ContactView(modifier = Modifier.weight(1f))
+                    ContactView(
+                        modifier = Modifier.weight(1f),
+                        totalPerson = connectedUser.size,
+                        userConnected = connectedUser.values.toList(),
+                    )
                 }
                 Spacer(Modifier.height(16.dp))
                 ReportView(

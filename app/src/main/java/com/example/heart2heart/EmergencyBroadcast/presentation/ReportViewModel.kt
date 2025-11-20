@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.inject.Inject
 
@@ -54,9 +55,12 @@ class ReportViewModel @Inject constructor(
                 },
                 ifRight = {
                     res ->
-                        val convertedEcgSegment = res.report.ecgSegment?.map {
+                        val start = LocalDateTime.parse(res.report.ecgSegment.start)
+                        var counter = -3;
+                        val convertedEcgSegment = res.report.ecgSegment?.signal?.map {
                             it ->
-                            ECGSegment(it.signal, LocalDateTime.parse(it.ts))
+                            counter+=3
+                            ECGSegment(it, start.plus(counter.toLong(), ChronoUnit.MILLIS))
                         }
                         if (!res.isEmpty) {
                             _reportModel.update {

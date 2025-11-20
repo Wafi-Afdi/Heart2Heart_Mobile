@@ -11,6 +11,9 @@ import com.example.heart2heart.ECGExtraction.repository.ECGRepository
 import com.example.heart2heart.EmergencyBroadcast.domain.EmergencyBroadcastService
 import com.example.heart2heart.auth.repository.ProfileRepository
 import com.example.heart2heart.bluetooth.BluetoothServiceECG
+import com.example.heart2heart.websocket.data.dto.LiveDataDTO
+import com.example.heart2heart.websocket.data.dto.SignalDTO
+import com.example.heart2heart.websocket.repository.WebSocketRepository
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +29,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -41,7 +46,9 @@ class ECGDataProcessingService @Inject constructor(
     private val ecgRepository: ECGRepository,
     private val bpmRepositoryImpl: BpmRepositoryImpl,
     private val profileRepository: ProfileRepository,
-    private val emergencyBroadcastService: EmergencyBroadcastService
+    private val emergencyBroadcastService: EmergencyBroadcastService,
+    private val bluetoothServiceECG: BluetoothServiceECG,
+    private val webSocketRepository: WebSocketRepository
 ) {
     private val processingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -54,6 +61,16 @@ class ECGDataProcessingService @Inject constructor(
 
     private var totalBeats = 0U
     private val bufferBeats = Mutex()
+
+    private var isAsystoleDetected = false;
+    private var isTachyDetected = false;
+    private var isBradyDetected = false;
+
+    private var lastDetectedBrady: Long? = null
+    private var lastDetectedAsytole: Long? = null
+    private var spamAsystole: Int = 0;
+
+    private var lastDetectedTachy: Long? = null
 
     private var lastRecordBPM = LocalDateTime.now()
     private var accumulatedTime = 0L
@@ -80,7 +97,7 @@ class ECGDataProcessingService @Inject constructor(
 
     suspend fun parseData(rawData: String, timestamp: LocalDateTime) {
 
-        if (ChronoUnit.MILLIS.between(timestamp, latestReceiveLocalTime) > 20) {
+        if (ChronoUnit.MILLIS.between(timestamp, latestReceiveLocalTime) > 10) {
             counterInterval = 0
             latestReceiveLocalTime = timestamp
         }
@@ -92,13 +109,28 @@ class ECGDataProcessingService @Inject constructor(
             intervalTime = counterInterval,
             recordTime = latestReceiveLocalTime.plus(counterInterval, ChronoUnit.MILLIS)
         )
-        counterInterval += 10
-        if (newECG.asystole) {
-            emergencyBroadcastService.emitReportAmbulatory(reportType = DetectionType.ASYSTOLE)
+        counterInterval += 3
+        if (newECG.asystole && !isAsystoleDetected) {
+            if (lastDetectedAsytole != null && System.currentTimeMillis() - lastDetectedAsytole!! >= 300_000 && spamAsystole <= 3) {
+                // emergencyBroadcastService.emitReportAmbulatory(reportType = DetectionType.ASYSTOLE)
+                // isAsystoleDetected = true
+                // lastDetectedAsytole = System.currentTimeMillis()
+                // spamAsystole++
+            }
+
+            // Only run once
+            if (lastDetectedAsytole == null) {
+                // emergencyBroadcastService.emitReportAmbulatory(reportType = DetectionType.ASYSTOLE)
+                // lastDetectedAsytole = System.currentTimeMillis();
+                // isAsystoleDetected = true;
+            }
+        } else if (!newECG.asystole && isAsystoleDetected) {
+            isAsystoleDetected = false
+            spamAsystole = 0
         }
         bufferMutex.withLock {
             buffer.add(newData)
-            if (buffer.size >= 250) {
+            if (buffer.size >= 300) {
                 _saveSignal.emit(Unit)
             }
         }
@@ -124,12 +156,12 @@ class ECGDataProcessingService @Inject constructor(
     private fun startBufferProcessor() {
         processingScope.launch {
             _saveSignal.collect {
-                // handleBufferSave()
+                handleBufferSave()
             }
         }
         processingScope.launch {
             while (true) {
-                // checkBPM()
+                checkBPM()
                 delay(2_500L)
             }
         }
@@ -138,14 +170,22 @@ class ECGDataProcessingService @Inject constructor(
     private suspend fun handleBufferSave() {
         var dataToSave: List<ECGSignalDataSTM> = emptyList()
         bufferMutex.withLock {
-            if (!buffer.isEmpty() && buffer.size >= 250) {
+            if (!buffer.isEmpty() && buffer.size >= 300) {
                 // Get a copy and clear the buffer
                 dataToSave = buffer.toList()
-                repeat(250) {
-                    buffer.removeFirstOrNull() ?: return@repeat
-                }
+                buffer.clear()
             }
         }
+
+        var liveDataDTO = LiveDataDTO(
+            ecgList = dataToSave.map {
+                it ->
+                it.signal
+            },
+            start = dataToSave[0].recordTime.toString(),
+            bpm = _calculatedBPM.value
+        )
+        webSocketRepository.publish("/app/liveData", Json.encodeToString(liveDataDTO))
 
         if (dataToSave.isNotEmpty()) {
             // ecgRepository.saveBatch(dataToSave)
@@ -165,60 +205,64 @@ class ECGDataProcessingService @Inject constructor(
     }
 
     private suspend fun checkBPM() {
-        val now = LocalDateTime.now()
-        val deltaTime = Duration.between(lastRecordBPM, now)
-        accumulatedTime += deltaTime.toMillis()
-        if (deltaTime.toMillis() >= 5_000L) {
-            val beatsPerSecond = totalBeats.toFloat() / (deltaTime.toMillis() / 1000.0f)
-            val beatsPerMinute = beatsPerSecond * 60.0f
-            _calculatedBPM.update { beatsPerMinute.toInt() }
-            bufferBeats.withLock {
-                totalBPMAcc += totalBeats.toLong()
-                totalBeats = 0U
+        if (bluetoothServiceECG.isConnected.value) {
+            val now = LocalDateTime.now()
+            val deltaTime = Duration.between(lastRecordBPM, now)
+            accumulatedTime += deltaTime.toMillis()
+            if (deltaTime.toMillis() >= 5_000L) {
+                val beatsPerSecond = totalBeats.toFloat() / (deltaTime.toMillis() / 1000.0f)
+                val beatsPerMinute = beatsPerSecond * 60.0f
+                _calculatedBPM.update { beatsPerMinute.toInt() }
+                bufferBeats.withLock {
+                    totalBPMAcc += totalBeats.toLong()
+                    totalBeats = 0U
+                }
+                totalBPMCount++;
+                lastRecordBPM = now
             }
-            totalBPMCount++;
-            lastRecordBPM = now
+
+            if (accumulatedTime >= 60_000) {
+                val average = totalBPMAcc.toFloat() / totalBPMCount.toFloat()
+                totalBPMAcc = 0
+                totalBPMCount = 0
+                var dataDTO = BpmDataDTO(
+                    bpm = average,
+                    ts = LocalDateTime.now().toString(),
+                )
+                val datasDTO: List<BpmDataDTO> = listOf(dataDTO)
+                if (average > 100) {
+                    totalTachyCount++
+                } else {
+                    if(isTachyDetected) {
+                        isTachyDetected = false
+                    }
+                    totalTachyCount = 0
+                }
+
+                if (average < 60) {
+                    totalBradyCount++
+                } else {
+                    if(isBradyDetected) {
+                        isBradyDetected = false
+                    }
+                    totalBradyCount = 0
+                }
+
+                if (totalTachyCount > 3 && !isTachyDetected) {
+                    emergencyBroadcastService.emitReportAmbulatory(DetectionType.TACHYCARDHIA)
+                    totalTachyCount = 0
+                    isTachyDetected = true
+                }
+
+                if (totalBradyCount > 3  && !isBradyDetected) {
+                    emergencyBroadcastService.emitReportAmbulatory(DetectionType.BRADYCARDHIA)
+                    totalBradyCount = 0
+                }  else if (isBradyDetected) {
+                    totalBradyCount = 0
+                }
+
+                bpmRepositoryImpl.sendBPMData(datasDTO, userId = UUID.fromString(profileRepository.userData.value.id))
         }
-
-        if (accumulatedTime >= 60_000) {
-            val average = totalBPMAcc.toFloat() / totalBPMCount.toFloat()
-            totalBPMAcc = 0
-            totalBPMCount = 0
-            var dataDTO = BpmDataDTO(
-                bpm = average,
-                ts = LocalDateTime.now().toString(),
-            )
-            val datasDTO: List<BpmDataDTO> = listOf(dataDTO)
-            if (average > 100) {
-                totalTachyCount++
-            } else {
-                totalTachyCount = 0
-            }
-
-            if (totalTachyCount > 3) {
-                emergencyBroadcastService.emitReport(null, DetectionType.TACHYCARDHIA)
-
-            } else {
-                totalTachyCount = 0
-            }
-
-            if (average < 60) {
-                totalBradyCount++
-            } else {
-                totalBradyCount = 0
-            }
-
-            if (totalTachyCount > 3) {
-                emergencyBroadcastService.emitReportAmbulatory(DetectionType.TACHYCARDHIA)
-                totalTachyCount = 0
-            }
-
-            if (totalBradyCount > 3) {
-                emergencyBroadcastService.emitReportAmbulatory(DetectionType.BRADYCARDHIA)
-                totalBradyCount = 0
-            }
-
-            bpmRepositoryImpl.sendBPMData(datasDTO, userId = UUID.fromString(profileRepository.userData.value.id))
         }
     }
 

@@ -9,6 +9,8 @@ import com.example.heart2heart.report.data.repository.StatisticRepository
 import com.example.heart2heart.report.presentation.state.rangeDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +32,8 @@ class StatisticViewModel @Inject constructor(
 
     private val _rangeDateBPM = MutableStateFlow(rangeDate(
         start = LocalDateTime.now().minusDays(6),
-        end = LocalDateTime.now()
+        end = LocalDateTime.now(),
+        isLoading = false
     ))
     val rangeDateBPM = _rangeDateBPM.asStateFlow()
 
@@ -44,6 +47,15 @@ class StatisticViewModel @Inject constructor(
         changeDate(_rangeDateBPM.value.start, _rangeDateBPM.value.end)
     }
 
+    private val _isProcessingCSV = MutableStateFlow(false)
+    val isProcessingCSV = _isProcessingCSV.asStateFlow()
+
+    private val _isLoadingReport = MutableStateFlow(false)
+    val isLoadingReport = _isLoadingReport.asStateFlow()
+
+    private val _isLoadingDiagnosis = MutableStateFlow(false)
+    val isLoadingDiagnosis = _isLoadingDiagnosis.asStateFlow()
+
     init {
         viewModelScope.launch {
             statisticRepository.toastMessage.collect {
@@ -54,7 +66,9 @@ class StatisticViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            _isLoadingReport.update { true }
             statisticRepository.fetchReportList()
+            _isLoadingReport.update { false }
         }
         viewModelScope.launch {
             updateDate(
@@ -66,15 +80,31 @@ class StatisticViewModel @Inject constructor(
 
     fun onRefreshData() {
         viewModelScope.launch {
+            _isLoadingReport.update { true }
             statisticRepository.fetchReportList()
+            _isLoadingReport.update { false }
         }
         viewModelScope.launch {
-            val endDay = LocalDate.now()
-            val endOfDayTime =  endDay.atStartOfDay()
+            _rangeDateBPM.update { it.copy(isLoading = true) }
+            statisticRepository.fetchBPMData(_rangeDateBPM.value.start, _rangeDateBPM.value.end)
 
-            val startDay = endDay.minusDays(6)
-            val startOfDay =  startDay.atStartOfDay()
-            statisticRepository.fetchBPMData(startOfDay, endOfDayTime)
+            _rangeDateBPM.update { it.copy(isLoading = false) }
+        }
+    }
+
+    fun generateDiagnosis() {
+        viewModelScope.launch {
+            _isLoadingDiagnosis.update { true }
+            statisticRepository.generateDiagnosis(LocalDateTime.now())
+            _isLoadingDiagnosis.update { false }
+        }
+    }
+
+    fun exportData(start: LocalDateTime, end: LocalDateTime) {
+        viewModelScope.launch {
+            _isProcessingCSV.update { true }
+            statisticRepository.exportECG(start, end)
+            _isProcessingCSV.update { false }
         }
     }
 

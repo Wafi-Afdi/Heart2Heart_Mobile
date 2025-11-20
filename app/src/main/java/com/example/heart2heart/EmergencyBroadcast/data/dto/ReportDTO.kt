@@ -5,6 +5,6 @@ import java.time.LocalDateTime
 data class ReportDTO(
     val reportType: String,
     val timestamp: String,
-    val ecgSegment: List<EcgSegmentDTO>?,
+    val ecgSegment: EcgSegmentDTO,
     val reportId: String,
 )

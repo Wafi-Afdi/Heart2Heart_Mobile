@@ -2,6 +2,7 @@ package com.example.heart2heart.ui.setting
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,23 +27,29 @@ import com.example.heart2heart.ui.theme.ubuntuFamily
 fun SettingScreen(
     modifier: Modifier,
     onLogoutClicked: () -> Unit = {},
+    onConnectCLicked: () -> Unit = {},
+    onSendMessage: () -> Unit = {},
+    onDisconnect: () -> Unit = {}
 ) {
     Box(modifier = modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
-        Button(
-            onClick = onLogoutClicked,
-
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-            ,
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                disabledContentColor = colorResource(R.color.neutral_900),
-                disabledContainerColor = colorResource(R.color.neutral_700)
-            )
+        Column(
+            modifier = Modifier.align(Alignment.BottomCenter)
         ) {
+
+            Button(
+                onClick = onLogoutClicked,
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                ,
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContentColor = colorResource(R.color.neutral_900),
+                    disabledContainerColor = colorResource(R.color.neutral_700)
+                )
+            ) {
                 // Button content
                 Text(
                     text = "Logout",
@@ -50,6 +57,76 @@ fun SettingScreen(
                     fontFamily = ubuntuFamily,
                     fontSize = 16.sp,
                 )
+            }
+
+            Button(
+                onClick = onConnectCLicked,
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                ,
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContentColor = colorResource(R.color.neutral_900),
+                    disabledContainerColor = colorResource(R.color.neutral_700)
+                )
+            ) {
+                // Button content
+                Text(
+                    text = "Coonnect",
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    fontFamily = ubuntuFamily,
+                    fontSize = 16.sp,
+                )
+            }
+
+            Button(
+                onClick = onDisconnect,
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                ,
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContentColor = colorResource(R.color.neutral_900),
+                    disabledContainerColor = colorResource(R.color.neutral_700)
+                )
+            ) {
+                // Button content
+                Text(
+                    text = "Disconnect",
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    fontFamily = ubuntuFamily,
+                    fontSize = 16.sp,
+                )
+            }
+
+            Button(
+                onClick = onSendMessage,
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                ,
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContentColor = colorResource(R.color.neutral_900),
+                    disabledContainerColor = colorResource(R.color.neutral_700)
+                )
+            ) {
+                // Button content
+                Text(
+                    text = "SendMessage",
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    fontFamily = ubuntuFamily,
+                    fontSize = 16.sp,
+                )
+            }
         }
     }
 }

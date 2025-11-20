@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +26,7 @@ import com.example.heart2heart.ui.theme.ubuntuFamily
 @Composable
 fun DiagnoseBottomSheet(
     onSubmit: () -> Unit = {},
+    isLoading: Boolean = false
 ) {
     val isDark = isSystemInDarkTheme()
 
@@ -53,7 +56,7 @@ fun DiagnoseBottomSheet(
             modifier = Modifier
                 .fillMaxWidth()
             ,
-            enabled = true,
+            enabled = !isLoading,
             shape = RoundedCornerShape(8.dp),
             colors = ButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -63,19 +66,20 @@ fun DiagnoseBottomSheet(
             )
         ) {
             // Button content
-//            if (uiState.isLoading) {
-//                CircularProgressIndicator(
-//                    modifier = Modifier.size(20.dp),
-//                    color = MaterialTheme.colorScheme.onPrimary,
-//                    strokeWidth = 2.dp
-//                )
-//            }
-            Text(
-                text = "Submit",
-                modifier = Modifier.padding(vertical = 4.dp),
-                fontFamily = ubuntuFamily,
-                fontSize = 16.sp,
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = "Submit",
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    fontFamily = ubuntuFamily,
+                    fontSize = 16.sp,
+                )
+            }
         }
     }
 }

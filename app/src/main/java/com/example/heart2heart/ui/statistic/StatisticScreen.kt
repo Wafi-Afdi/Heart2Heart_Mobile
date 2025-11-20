@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,20 +39,26 @@ fun StatisticScreen(
     onClickExport: () -> Unit = { },
     onClickDiagnose: () -> Unit = { },
     onUpdateBPMRange:(start: LocalDateTime, end: LocalDateTime) -> Unit = {
-    st, en ->
-    Unit
-},
+        st, en ->
+        Unit
+    },
     listBPMData: List<AverageBPM> = emptyList(),
     listOfReports: List<ReportData> = emptyList(),
     onClickSeeMoreCard: (id: String) -> Unit = {},
     rangeDate: rangeDate = rangeDate(
         start = LocalDateTime.now().minusDays(6),
         end = LocalDateTime.now()
-    )
+    ),
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = { },
 ) {
     val scrollState = rememberScrollState()
 
-    Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    PullToRefreshBox(
+        modifier = modifier.fillMaxSize().padding(16.dp),
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh
+    ) {
         Column(
             Modifier
                 .fillMaxSize()

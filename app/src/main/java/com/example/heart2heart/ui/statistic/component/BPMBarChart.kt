@@ -48,11 +48,11 @@ fun BPMBarChart(
         if (listBPMData.size > 0) {
 
             val series1 = listOf(
-                listBPMData.map {
-                    it
+                listBPMData.mapIndexed {
+                    it, data ->
                     entryOf(
-                        Duration.between(listBPMData[0].timestamp, it.timestamp).toMillis().toFloat(),
-                        y = it.bpm
+                        it.toFloat(),
+                        y = data.bpm
                     )
                 }
             )
@@ -90,7 +90,7 @@ fun BPMBarChart(
             },
         ),
         bottomAxis = rememberBottomAxis(
-            valueFormatter = FormatterDateAxisX(refTime ?: LocalDateTime.now()),
+            valueFormatter = FormatterDateAxisX(refTime ?: LocalDateTime.now(), listBPMData),
             label = textComponent {
                 color = Color.White.toArgb()
                 textSizeSp = 8f

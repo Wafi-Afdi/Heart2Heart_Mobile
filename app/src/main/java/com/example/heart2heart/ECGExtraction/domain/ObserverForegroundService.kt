@@ -12,7 +12,9 @@ import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.heart2heart.ECGExtraction.model.ECGDataProcessingService
+import com.example.heart2heart.EmergencyBroadcast.domain.EmergencyBroadcastService
 import com.example.heart2heart.R
+import com.example.heart2heart.websocket.repository.WebSocketRepository
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +30,12 @@ class ObserverForegroundService: Service() {
 
     private lateinit var wakeLock: PowerManager.WakeLock
 
+    @Inject
+    lateinit var websocketAmbulatory: WebSocketRepository
+
+    @Inject
+    lateinit var ecgEmergencyBroadcastService: EmergencyBroadcastService
+
     companion object {
         const val CHANNEL_ID = "EcgForegroundServiceChannel"
         const val NOTIFICATION_ID = 1
@@ -41,10 +49,12 @@ class ObserverForegroundService: Service() {
         }
         val action = intent?.action
         when (action) {
-            ECGForegroundService.Companion.ACTION_DISCONNECT -> {
+            ACTION_DISCONNECT -> {
                 disconnect()
             }
         }
+
+        websocketAmbulatory.connect()
 
         val notification = createNotification()
         startForeground(ECGForegroundService.Companion.NOTIFICATION_ID, notification)
@@ -88,6 +98,7 @@ class ObserverForegroundService: Service() {
         }
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+        websocketAmbulatory.disconnect()
     }
 
     override fun onCreate() {
@@ -105,6 +116,7 @@ class ObserverForegroundService: Service() {
             Log.d("ECGForegroundService", "WakeLock released in onDestroy.")
         }
         stopForeground(STOP_FOREGROUND_REMOVE)
+        websocketAmbulatory.disconnect()
     }
 
     @SuppressLint("WakelockTimeout")

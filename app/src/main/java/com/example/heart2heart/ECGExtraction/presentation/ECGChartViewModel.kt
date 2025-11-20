@@ -5,7 +5,10 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.heart2heart.ECGExtraction.domain.ECGForegroundService
+import com.example.heart2heart.auth.data.AppType
+import com.example.heart2heart.auth.repository.ProfileRepository
 import com.example.heart2heart.bluetooth.BluetoothServiceECG
+import com.example.heart2heart.websocket.repository.WebSocketRepository
 import com.patrykandpatrick.vico.core.entry.ChartEntry
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryModelOf
@@ -37,7 +40,9 @@ import kotlin.math.round
 
 @HiltViewModel
 class ECGChartViewModel @Inject constructor(
-    private val bluetoothServiceEcg: BluetoothServiceECG
+    private val bluetoothServiceEcg: BluetoothServiceECG,
+    private val webSocketRepository: WebSocketRepository,
+    private val profileRepository: ProfileRepository,
 ) : ViewModel() {
     data class Point(val x: Double, val y: Float)
 
@@ -48,17 +53,21 @@ class ECGChartViewModel @Inject constructor(
     val chartModelProducer: ChartEntryModelProducer
         get() = _chartModelProducer
 
-    private val MAX_POINTS = 500                 // sliding window size
+    private val MAX_POINTS = 2000                 // sliding window size
 
     // Internal buffer and state
     private val buffer = ArrayDeque<Point>(MAX_POINTS)
     private var xCounter = 0f
 
-    val referenceTime = bluetoothServiceEcg.lastConnectedTime
+    val referenceTimeBluetooth = bluetoothServiceEcg.lastConnectedTime
 
     init {
         // startGenerating()
-        subscribeECGDataFromBluetooth()
+        if (profileRepository.appType.value == AppType.AMBULATORY) {
+            subscribeECGDataFromBluetooth()
+        } else {
+            subscribeFromWs()
+        }
     }
 
     private fun addPoint(point: Point) {
@@ -96,6 +105,14 @@ class ECGChartViewModel @Inject constructor(
 //        }
 //    }
 
+    fun referenceTime(): StateFlow<LocalDateTime?> {
+        if (profileRepository.appType.value == AppType.AMBULATORY) {
+            return bluetoothServiceEcg.lastConnectedTime
+        } else {
+            return webSocketRepository.lastConnectionTime
+        }
+    }
+
     private fun subscribeECGDataFromBluetooth() {
         viewModelScope.launch {
             bluetoothServiceEcg
@@ -105,9 +122,22 @@ class ECGChartViewModel @Inject constructor(
                     val parsedPoint = parseDataPoint(data)
                     // Log.w("ECGViewModel", "time: ${timestamp.toFloat()} ${timestamp}")
                     addPoint(Point(xCounter.toDouble(), parsedPoint))
-                    xCounter += 10f
-                    delay(5)
+                    xCounter += 3f
+                    // delay(5)
                 }
+        }
+    }
+
+    private fun subscribeFromWs() {
+        viewModelScope.launch {
+            webSocketRepository.liveDataFlow.collect {
+                data ->
+                data.ecgList.map {
+                    points ->
+                    addPoint(Point(xCounter.toDouble(), points))
+                    xCounter += 3f
+                }
+            }
         }
     }
 

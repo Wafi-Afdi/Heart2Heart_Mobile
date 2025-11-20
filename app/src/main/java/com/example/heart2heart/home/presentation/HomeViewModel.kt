@@ -2,6 +2,7 @@ package com.example.heart2heart.home.presentation
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.heart2heart.ECGExtraction.data.ReportType
@@ -9,6 +10,7 @@ import com.example.heart2heart.ECGExtraction.model.ECGDataProcessingService
 import com.example.heart2heart.EmergencyBroadcast.data.remote.ReportAPI
 import com.example.heart2heart.EmergencyBroadcast.data.repository.ReportRepository
 import com.example.heart2heart.auth.data.AppType
+import com.example.heart2heart.auth.data.UserProfile
 import com.example.heart2heart.auth.presentation.RegisterUIState
 import com.example.heart2heart.auth.repository.AuthRepository
 import com.example.heart2heart.auth.repository.ProfileRepository
@@ -17,6 +19,7 @@ import com.example.heart2heart.home.data.LocationData
 import com.example.heart2heart.home.domain.LiveLocationService
 import com.example.heart2heart.home.presentation.state.UserHomeState
 import com.example.heart2heart.report.domain.model.ReportData
+import com.example.heart2heart.websocket.repository.WebSocketRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +39,8 @@ class HomeViewModel @Inject constructor(
     private val profileRepo: ProfileRepository,
     private val liveLocationService: LiveLocationService,
     private val ecgProcessingService: ECGDataProcessingService,
-    private val reportRepository: ReportRepository
+    private val reportRepository: ReportRepository,
+    private val webSocketRepository: WebSocketRepository,
 ): ViewModel() {
     private val _userHomeState = MutableStateFlow(UserHomeState())
     private val _locationState = MutableStateFlow(LocationData())
@@ -51,6 +55,14 @@ class HomeViewModel @Inject constructor(
 
     val locationState = liveLocationService.locationState
 
+    private val _isObserverBluetoothConnected =
+        MutableStateFlow(false)
+
+    val isObserverBluetoothConnected: StateFlow<Boolean>
+        get() = _isObserverBluetoothConnected.asStateFlow()
+
+    val totalPersonWatching = webSocketRepository.connectedUser
+
     private val _listOfReports = MutableStateFlow<List<ReportData>>(emptyList())
     val listOfReports: StateFlow<List<ReportData>>
         get() = _listOfReports.asStateFlow()
@@ -64,17 +76,28 @@ class HomeViewModel @Inject constructor(
                 )
             }
 
-            combine(
-                profileRepo.appType,
-                profileRepo.userData
-            ) { appType, userData ->
-                _userHomeState.update { currentState ->
-                    currentState.copy(
-                        appType = appType,
-                        name = userData.name
+            if (profileRepo.appType.value == AppType.OBSERVER) {
+                _userHomeState.update {
+                    it.copy(
+                        userBeingMonitored = UserProfile(
+                            name = profileRepo.ECGObserving.value.name,
+                            email = profileRepo.ECGObserving.value.email,
+                            id = profileRepo.ECGObserving.value.id
+                        )
                     )
                 }
-            }.collect()
+            }
+        }
+
+        viewModelScope.launch {
+            webSocketRepository.userFlow.collect {
+                it ->
+                if(it.isAmbulatory && it.isBluetoothConnected) {
+                    _isObserverBluetoothConnected.update { true }
+                } else if (it.isAmbulatory) {
+                    _isObserverBluetoothConnected.update { false }
+                }
+            }
         }
     }
 

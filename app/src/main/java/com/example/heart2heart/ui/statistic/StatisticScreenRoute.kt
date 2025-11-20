@@ -5,12 +5,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.heart2heart.report.presentation.StatisticViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,11 +32,18 @@ fun StatisticScreenRoute(
         mutableStateOf(false)
     }
 
-    val listOfReports by statisticViewModel.listOfReports.collectAsState()
+    val listOfReports by statisticViewModel.listOfReports.collectAsStateWithLifecycle()
 
-    val listBPMData by statisticViewModel.listOfChartBPM.collectAsState()
-
+    val listBPMData by statisticViewModel.listOfChartBPM.collectAsStateWithLifecycle()
     val rangeDate by statisticViewModel.rangeDateBPM.collectAsState()
+
+    val isLoadingReport by statisticViewModel.isLoadingReport.collectAsStateWithLifecycle()
+
+    val isLoadingDiagnosis by statisticViewModel.isLoadingDiagnosis.collectAsStateWithLifecycle()
+
+    val isLoadingCSV by statisticViewModel.isProcessingCSV.collectAsStateWithLifecycle()
+
+    val isRefreshing = isLoadingReport || rangeDate.isLoading
     StatisticScreen(
         modifier = modifier,
         onClickExport = { isExportSheetOpen = true },
@@ -44,8 +53,21 @@ fun StatisticScreenRoute(
         onClickSeeMoreCard = navToDetail,
         listOfReports = listOfReports,
         rangeDate = rangeDate,
-
+        isRefreshing = isRefreshing,
+        onRefresh = statisticViewModel::onRefreshData
     )
+
+    LaunchedEffect(isLoadingDiagnosis) {
+        if (isDiagnoseSheetOpen && !isLoadingDiagnosis) {
+            isDiagnoseSheetOpen = false
+        }
+    }
+
+    LaunchedEffect(isLoadingCSV) {
+        if (isExportSheetOpen && !isLoadingCSV) {
+            isExportSheetOpen = false
+        }
+    }
 
     if (isExportSheetOpen) {
         ModalBottomSheet(
@@ -56,7 +78,8 @@ fun StatisticScreenRoute(
             containerColor = MaterialTheme.colorScheme.surface
         ) {
             ExportBottomSheet(
-                onSubmit = { isExportSheetOpen = false }
+                onSubmit = statisticViewModel::exportData,
+                isLoading = isLoadingCSV
             )
         }
     } else if (isDiagnoseSheetOpen) {
@@ -68,7 +91,8 @@ fun StatisticScreenRoute(
             containerColor = MaterialTheme.colorScheme.surface
         ) {
             DiagnoseBottomSheet(
-                onSubmit = { isDiagnoseSheetOpen = false }
+                onSubmit = statisticViewModel::generateDiagnosis,
+                isLoading = isLoadingDiagnosis,
             )
         }
     }

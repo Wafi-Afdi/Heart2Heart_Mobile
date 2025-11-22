@@ -102,9 +102,9 @@ class ECGForegroundService: Service() {
                     // Update notification if needed
                     val newNotification = createNotification()
                     notificationManager.notify(NOTIFICATION_ID, newNotification)
-                    websocketAmbulatory.publishBluetoothIsActive()
                 } else {
                     // Connection lost, stop the service
+                    websocketAmbulatory.publishBluetoothIsActive()
                     stopSelf()
                 }
             }

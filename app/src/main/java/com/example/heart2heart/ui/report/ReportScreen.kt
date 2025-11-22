@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusModifier
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,6 +50,7 @@ fun ReportScreen(
     onBackPressed: () -> Unit = {},
     modifier: Modifier,
     reportModel: ReportUIState = ReportUIState(),
+    onDownloadData: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
 
@@ -80,13 +83,35 @@ fun ReportScreen(
                 thickness = 2.dp,
                 color = if (isSystemInDarkTheme()) colorResource(R.color.neutral_900) else colorResource(R.color.neutral_700)
             )
-            Spacer(Modifier.height(8.dp))
-            ECGSegmentChart()
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
+            if (reportModel.ecgSegment != null && reportModel.ecgSegment.isNotEmpty()) {
+
+                ECGSegmentChart(
+                    ecgSegment = reportModel.ecgSegment
+                )
+                Spacer(Modifier.height(16.dp))
+            }
             ReportDetailComponent(
                 title = setTitle(reportModel.reportType),
                 description = setDescription(reportModel.reportType)
             )
+        }
+
+        if (reportModel.reportType != ReportType.NORMAL
+            && reportModel.reportType != ReportType.UNKNOWN
+            ) {
+            IconButton(
+                onClick = onDownloadData,
+                shape =  RoundedCornerShape(10),
+                modifier = Modifier.align(Alignment.BottomCenter).size(30.dp).background(MaterialTheme.colorScheme.primary),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.outlined_download),
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    contentDescription = "Back",
+                    modifier = Modifier.requiredSize(24.dp)
+                )
+            }
         }
     }
 

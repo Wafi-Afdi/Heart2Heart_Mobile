@@ -110,19 +110,22 @@ class ECGDataProcessingService @Inject constructor(
             recordTime = latestReceiveLocalTime.plus(counterInterval, ChronoUnit.MILLIS)
         )
         counterInterval += 3
+        if (newECG.rP) {
+            totalBeats++
+        }
         if (newECG.asystole && !isAsystoleDetected) {
             if (lastDetectedAsytole != null && System.currentTimeMillis() - lastDetectedAsytole!! >= 300_000 && spamAsystole <= 3) {
-                // emergencyBroadcastService.emitReportAmbulatory(reportType = DetectionType.ASYSTOLE)
-                // isAsystoleDetected = true
-                // lastDetectedAsytole = System.currentTimeMillis()
-                // spamAsystole++
+                 emergencyBroadcastService.emitReportAmbulatory(reportType = DetectionType.ASYSTOLE)
+                 isAsystoleDetected = true
+                 lastDetectedAsytole = System.currentTimeMillis()
+                 spamAsystole++
             }
 
             // Only run once
             if (lastDetectedAsytole == null) {
-                // emergencyBroadcastService.emitReportAmbulatory(reportType = DetectionType.ASYSTOLE)
-                // lastDetectedAsytole = System.currentTimeMillis();
-                // isAsystoleDetected = true;
+                 emergencyBroadcastService.emitReportAmbulatory(reportType = DetectionType.ASYSTOLE)
+                 lastDetectedAsytole = System.currentTimeMillis();
+                 isAsystoleDetected = true;
             }
         } else if (!newECG.asystole && isAsystoleDetected) {
             isAsystoleDetected = false
@@ -163,6 +166,13 @@ class ECGDataProcessingService @Inject constructor(
             while (true) {
                 checkBPM()
                 delay(2_500L)
+            }
+        }
+
+        processingScope.launch {
+            webSocketRepository.liveDataFlow.collect {
+                data ->
+                _calculatedBPM.update { data.bpm }
             }
         }
     }
@@ -209,7 +219,7 @@ class ECGDataProcessingService @Inject constructor(
             val now = LocalDateTime.now()
             val deltaTime = Duration.between(lastRecordBPM, now)
             accumulatedTime += deltaTime.toMillis()
-            if (deltaTime.toMillis() >= 5_000L) {
+            if (deltaTime.toMillis() >= 3_000L) {
                 val beatsPerSecond = totalBeats.toFloat() / (deltaTime.toMillis() / 1000.0f)
                 val beatsPerMinute = beatsPerSecond * 60.0f
                 _calculatedBPM.update { beatsPerMinute.toInt() }
@@ -221,7 +231,7 @@ class ECGDataProcessingService @Inject constructor(
                 lastRecordBPM = now
             }
 
-            if (accumulatedTime >= 60_000) {
+            if (accumulatedTime >= 30_000) {
                 val average = totalBPMAcc.toFloat() / totalBPMCount.toFloat()
                 totalBPMAcc = 0
                 totalBPMCount = 0

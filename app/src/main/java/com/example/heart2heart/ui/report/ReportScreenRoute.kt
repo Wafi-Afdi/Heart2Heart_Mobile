@@ -41,7 +41,10 @@ fun ReportScreenRoute(
         ReportScreen(
             modifier = modifier,
             onBackPressed = onBackPressed,
-            reportModel = reportModel
+            reportModel = reportModel,
+            onDownloadData = {
+                reportViewModel.onDownloadPressed()
+            }
         )
     }
 

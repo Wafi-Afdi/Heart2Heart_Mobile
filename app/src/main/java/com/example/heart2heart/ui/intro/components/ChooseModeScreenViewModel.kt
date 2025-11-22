@@ -2,7 +2,6 @@ package com.example.heart2heart.ui.intro.components
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.ui.tooling.data.ContextCache
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.heart2heart.auth.data.AppType

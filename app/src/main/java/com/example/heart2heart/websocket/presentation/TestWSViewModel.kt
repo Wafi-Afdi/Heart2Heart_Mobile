@@ -39,7 +39,7 @@ class TestWSViewModel @Inject constructor(
 
     fun sendMessage() {
         val newLiveData = LiveDataDTO(
-            ecgList = emptyList(),
+            ecgList = listOf(100f,100f,100f,100f,100f,100f,100f,100f,100f,100f,100f,100f,100f,100f,100f,100f,100f),
             start = LocalDateTime.now().toString(),
             bpm = 0
         )

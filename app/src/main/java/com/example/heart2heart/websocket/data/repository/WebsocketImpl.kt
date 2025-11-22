@@ -91,6 +91,17 @@ class WebsocketImpl @Inject constructor(
 
     private var heartbeatJob: Job? = null // For WS Ping
 
+    init {
+        repositoryScope.launch {
+
+            bluetoothServiceECG.isConnected.collect {
+                if(profileRepository.appType.value == AppType.AMBULATORY) {
+                    publishBluetoothIsActive()
+                }
+            }
+        }
+    }
+
     private fun createConnectFrame(token: String): String {
         return "CONNECT\n" +
                 "accept-version:1.2\n" +
@@ -327,10 +338,14 @@ class WebsocketImpl @Inject constructor(
                             repositoryScope.launch{ _userFlow.emit(decodeUser) }
                         }
                         "/topic/liveData" -> {
-                            Log.i("WebSocket", "liveData  $body")
-                            val decodeLiveData = Json.decodeFromString<LiveDataDTO>(body)
-                            _liveDataFlow.tryEmit(decodeLiveData)
-                            repositoryScope.launch{ _liveDataFlow.emit(decodeLiveData)}
+                            try {
+
+                                Log.i("WebSocket", "liveData  $body")
+                                val decodeLiveData = Json.decodeFromString<LiveDataDTO>(body)
+                                repositoryScope.launch{ _liveDataFlow.emit(decodeLiveData)}
+                            } catch (e: Exception) {
+                                Log.e("Websocket", "failed parse $body")
+                            }
                         }
                         "/topic/notification" -> {
                             Log.i("WebSocket", "notification  $body")

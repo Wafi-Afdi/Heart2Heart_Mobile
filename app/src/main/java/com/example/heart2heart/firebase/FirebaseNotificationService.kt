@@ -90,11 +90,11 @@ class FirebaseNotificationService : FirebaseMessagingService() {
 
             if (reportType == "SOS" && name != null) {
                 emergencyBroadcastService.emitSOSObserver(name)
-            } else if (reportType == "VFib"  && name != null) {
+            } else if (reportType == "Ventricular Fibrillation"  && name != null) {
                 emergencyBroadcastService.emitReport(name, DetectionType.VFIB)
-            } else if (reportType == "VT"  && name != null) {
+            } else if (reportType == "Ventricular Tachycardia"  && name != null) {
                 emergencyBroadcastService.emitReport(name, DetectionType.VT)
-            } else if (reportType == "AFib"  && name != null) {
+            } else if (reportType == "Atrial Fibrillation"  && name != null) {
                 emergencyBroadcastService.emitReport(name, DetectionType.AFIB)
             } else if (reportType == "Asystole"  && name != null) {
                 emergencyBroadcastService.emitReport(name, DetectionType.ASYSTOLE)
@@ -102,7 +102,7 @@ class FirebaseNotificationService : FirebaseMessagingService() {
                 emergencyBroadcastService.emitReport(name, DetectionType.TACHYCARDHIA)
             } else if (reportType == "Bradycardia"  && name != null) {
                 emergencyBroadcastService.emitReport(name, DetectionType.BRADYCARDHIA)
-            } else if (reportType == "Normal"  && name != null) {
+            } else if (reportType == "Normal Rhythm"  && name != null) {
                 emergencyBroadcastService.emitReport(name, DetectionType.NORMAL)
             }
         }

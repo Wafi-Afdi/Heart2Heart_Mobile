@@ -209,8 +209,8 @@ fun HomeScreen(
                         },
                         long = locationState.longitude,
                         lat = locationState.latitude,
-                        nation = locationState.country ?: "Unknown",
-                        provinceState = locationState.city ?: "Unknown"
+                        nation = locationState.country ?: "-",
+                        provinceState = locationState.city ?: "-"
 
                     )
                     Spacer(Modifier.width(8.dp))
